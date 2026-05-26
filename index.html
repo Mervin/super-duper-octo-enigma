@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atomic Idle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <header>
+            <h1>Atomic Idle</h1>
+            <div id="radiation-display" class="hidden prestige-text">
+                Background Radiation: <span id="radiation-amount">0</span>
+                <span class="tooltip">(Boosts all production by <span id="radiation-boost">0</span>%)</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="panel left-panel">
+                <h2>Resources</h2>
+                <div class="resource-box">
+                    <h3>Quarks</h3>
+                    <div class="amount" id="quarks-amount">0</div>
+                    <div class="rate" id="quarks-rate">0 / sec</div>
+                </div>
+
+                <div class="elements-list" id="elements-container">
+                    <!-- Elements will be generated here -->
+                </div>
+            </div>
+
+            <div class="panel center-panel">
+                <h2>Actions</h2>
+                <button id="btn-gather-quarks" class="action-btn main-btn">
+                    Gather Quarks
+                    <span class="shortcut">(Space)</span>
+                </button>
+
+                <div id="mergers-container">
+                    <!-- Merge buttons will be generated here -->
+                </div>
+            </div>
+
+            <div class="panel right-panel">
+                <h2>Upgrades & Automation</h2>
+
+                <div id="automation-container">
+                    <button id="btn-buy-generator" class="upgrade-btn">
+                        Buy Quark Generator
+                        <span class="cost">Cost: <span id="generator-cost">10</span> Quarks</span>
+                        <span class="owned">Owned: <span id="generator-owned">0</span></span>
+                    </button>
+                    <!-- Automators will go here -->
+                </div>
+
+                <div class="prestige-section hidden" id="prestige-section">
+                    <h2>Cosmic Reset</h2>
+                    <p>Trigger a cosmic reset to earn Background Radiation.</p>
+                    <button id="btn-prestige" class="action-btn prestige-btn">
+                        Reset for <span id="prestige-gain">0</span> Radiation
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="settings">
+                <button id="btn-save" class="setting-btn">Save</button>
+                <button id="btn-export" class="setting-btn">Export Save</button>
+                <button id="btn-import" class="setting-btn">Import Save</button>
+                <button id="btn-hard-reset" class="setting-btn danger">Wipe Save</button>
+                <span id="save-status"></span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div id="export-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Export Save</h3>
+            <p>Copy this text to save your game safely:</p>
+            <textarea id="export-text" readonly></textarea>
+            <button id="btn-close-export" class="action-btn">Close</button>
+        </div>
+    </div>
+
+    <div id="import-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Import Save</h3>
+            <p>Paste your save text here:</p>
+            <textarea id="import-text"></textarea>
+            <button id="btn-confirm-import" class="action-btn main-btn">Import</button>
+            <button id="btn-close-import" class="action-btn">Cancel</button>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
