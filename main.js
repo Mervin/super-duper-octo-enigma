@@ -2,9 +2,11 @@
 const DEFAULT_STATE = {
     quarks: 0,
     backgroundRadiation: 0,
+    hasPrestiged: false,
     generators: 0, // Generates Quarks
     synthesizers: 0, // Automates Hydrogen
     processors: 0, // Automates Merging
+    accelerators: 0, // Global speed multiplier
     language: "en", // default language
     elements: {
         1: 0, // Hydrogen
@@ -15,6 +17,12 @@ const DEFAULT_STATE = {
         6: 0, // Carbon
         7: 0, // Nitrogen
         8: 0, // Oxygen
+    },
+    molecules: {
+        1: 0, // H2
+        2: 0, // H2O
+        3: 0, // CO2
+        4: 0, // CH4
     },
     lastSaveTime: Date.now()
 };
@@ -48,12 +56,23 @@ const TRANSLATIONS = {
         buyGenerator: "Buy Quark Generator",
         buySynthesizer: "Buy H-Synthesizer (Auto-Hydrogen)",
         buyProcessor: "Buy Atom Processor (Auto-Merge)",
+        buyAccelerator: "Buy Time Accelerator (Game Speed x1.5)",
         cost: "Cost",
         owned: "Owned",
         createH: "Create Hydrogen",
         merge: "Merge",
         into: "into",
-        baseElement: "Base Element"
+        baseElement: "Base Element",
+        molecules: "Molecules",
+        craft: "Craft",
+        bonusH2: "H2 Bonus: Quarks x",
+        bonusH2O: "H2O Bonus: Atom Processors x",
+        bonusCO2: "CO2 Bonus: Synthesizers x",
+        bonusCH4: "CH4 Bonus: Background Radiation +",
+        hintH2: "Hint: Two basic elements combined.",
+        hintH2O: "Hint: 2 Hydrogen + 1 Oxygen.",
+        hintCO2: "Hint: 1 Carbon + 2 Oxygen.",
+        hintCH4: "Hint: 1 Carbon + 4 Hydrogen."
     },
     cz: {
         resources: "Zdroje",
@@ -79,12 +98,23 @@ const TRANSLATIONS = {
         buyGenerator: "Koupit Generátor Kvarků",
         buySynthesizer: "Koupit H-Syntetizátor (Auto-Vodík)",
         buyProcessor: "Koupit Atomový Procesor (Auto-Sloučení)",
+        buyAccelerator: "Koupit Urychlovač Času (Rychlost Hry x1.5)",
         cost: "Cena",
         owned: "Vlastněno",
         createH: "Vytvořit Vodík",
         merge: "Sloučit",
         into: "do",
-        baseElement: "Základní Prvek"
+        baseElement: "Základní Prvek",
+        molecules: "Molekuly",
+        craft: "Vytvořit",
+        bonusH2: "H2 Bonus: Kvarky x",
+        bonusH2O: "H2O Bonus: Atomové Procesory x",
+        bonusCO2: "CO2 Bonus: Syntetizátory x",
+        bonusCH4: "CH4 Bonus: Základní Záření +",
+        hintH2: "Nápověda: Dva základní prvky dohromady.",
+        hintH2O: "Nápověda: 2 Vodík + 1 Kyslík.",
+        hintCO2: "Nápověda: 1 Uhlík + 2 Kyslík.",
+        hintCH4: "Nápověda: 1 Uhlík + 4 Vodík."
     }
 };
 
@@ -139,11 +169,18 @@ function loadGame() {
         try {
             const savedData = JSON.parse(savedString);
             // Merge loaded data with default state to handle game updates
-            game = { ...DEFAULT_STATE, ...savedData, elements: { ...DEFAULT_STATE.elements, ...savedData.elements } };
+            game = {
+                ...DEFAULT_STATE,
+                ...savedData,
+                elements: { ...DEFAULT_STATE.elements, ...savedData.elements },
+                molecules: { ...DEFAULT_STATE.molecules, ...savedData.molecules }
+            };
 
             // Handle missing properties from older saves
             if (typeof game.synthesizers === "undefined") game.synthesizers = 0;
             if (typeof game.language === "undefined") game.language = "en";
+            if (typeof game.hasPrestiged === "undefined") game.hasPrestiged = game.backgroundRadiation > 0;
+            if (typeof game.accelerators === "undefined") game.accelerators = 0;
 
             // Offline Progress Calculation
             const now = Date.now();
@@ -163,6 +200,28 @@ function resetGame() {
     if (confirm("Are you sure you want to wipe ALL your progress? This cannot be undone!")) {
         game = JSON.parse(JSON.stringify(DEFAULT_STATE));
         saveGame();
+        updateUI();
+    }
+}
+
+function craftMolecule(molId) {
+    const mol = MOLECULES.find(m => m.id === molId);
+    if (!mol) return;
+
+    // Check requirements
+    let canCraft = true;
+    for (let eId in mol.reqs) {
+        if (game.elements[eId] < mol.reqs[eId]) {
+            canCraft = false;
+        }
+    }
+
+    if (canCraft) {
+        for (let eId in mol.reqs) {
+            game.elements[eId] -= mol.reqs[eId];
+        }
+        if (typeof game.molecules[mol.id] === 'undefined') game.molecules[mol.id] = 0;
+        game.molecules[mol.id]++;
         updateUI();
     }
 }
@@ -216,6 +275,14 @@ const ELEMENTS = [
     { id: 8, name: "Oxygen", symbol: "O", mergeReq: 3 }    // Needs 3 N
 ];
 
+// Molecule Definitions
+const MOLECULES = [
+    { id: 1, name: "Diatomic Hydrogen", symbol: "H2", reqs: { 1: 2 }, hintKey: "hintH2" },
+    { id: 2, name: "Water", symbol: "H2O", reqs: { 1: 2, 8: 1 }, hintKey: "hintH2O" },
+    { id: 3, name: "Carbon Dioxide", symbol: "CO2", reqs: { 6: 1, 8: 2 }, hintKey: "hintCO2" },
+    { id: 4, name: "Methane", symbol: "CH4", reqs: { 6: 1, 1: 4 }, hintKey: "hintCH4" }
+];
+
 // Game Loop Setup
 let lastTick = Date.now();
 
@@ -232,11 +299,24 @@ function getProcessorCost() {
     return Math.floor(250 * Math.pow(2.2, game.processors)); // Increased scaling
 }
 
+function getAcceleratorCost() {
+    return Math.floor(1000 * Math.pow(3.0, game.accelerators));
+}
+
 function buyGenerator() {
     const cost = getGeneratorCost();
     if (game.quarks >= cost) {
         game.quarks -= cost;
         game.generators++;
+        updateUI();
+    }
+}
+
+function buyAccelerator() {
+    const cost = getAcceleratorCost();
+    if (game.quarks >= cost) {
+        game.quarks -= cost;
+        game.accelerators++;
         updateUI();
     }
 }
@@ -261,24 +341,41 @@ function buyProcessor() {
 
 function gameTick() {
     const now = Date.now();
-    const dt = (now - lastTick) / 1000;
+    const rawDt = (now - lastTick) / 1000;
     lastTick = now;
 
-    simulateProgress(dt);
+    // Apply speed multiplier based on accelerators
+    const speedMultiplier = 1 + (game.accelerators * 0.5); // 50% faster per accelerator
+    const simulatedDt = rawDt * speedMultiplier;
+
+    simulateProgress(simulatedDt);
     updateUI();
 }
 
 function simulateProgress(dt) {
+    // Make base generation slightly slower initially (0.8 multiplier)
+    const baseGenerationSpeed = 0.8;
+
+    // Molecule Bonuses
+    const h2Bonus = 1 + ((game.molecules[1] || 0) * 0.5); // H2 boosts Quarks
+    const h2oBonus = 1 + ((game.molecules[2] || 0) * 0.25); // H2O boosts Processors
+    const co2Bonus = 1 + ((game.molecules[3] || 0) * 0.25); // CO2 boosts Synthesizers
+    const ch4Bonus = (game.molecules[4] || 0); // CH4 adds direct background radiation per second
+
+    if (ch4Bonus > 0) {
+        game.backgroundRadiation += (ch4Bonus * dt);
+    }
+
     // 1. Generators produce Quarks
     if (game.generators > 0) {
         const radiationMultiplier = 1 + (game.backgroundRadiation * 0.05);
-        const quarksPerSec = game.generators * radiationMultiplier;
+        const quarksPerSec = game.generators * radiationMultiplier * baseGenerationSpeed * h2Bonus;
         game.quarks += quarksPerSec * dt;
     }
 
     // 1.5 Synthesizers automate Hydrogen creation
     if (game.synthesizers > 0) {
-        const hPerSec = game.synthesizers;
+        const hPerSec = game.synthesizers * co2Bonus;
         const possibleHThisTick = hPerSec * dt;
 
         let hToBuy = Math.floor(possibleHThisTick);
@@ -299,7 +396,7 @@ function simulateProgress(dt) {
 
     // 2. Processors automate merging (bottom-up to avoid double processing in one tick)
     if (game.processors > 0) {
-        const mergesPerSec = game.processors;
+        const mergesPerSec = game.processors * h2oBonus;
         const possibleMergesThisTick = mergesPerSec * dt;
 
         for (let i = 7; i >= 1; i--) { // Max 8 elements, loop 7 down to 1
@@ -381,8 +478,9 @@ function doPrestige() {
 
 // Core Actions
 function gatherQuarks() {
+    const h2Bonus = 1 + ((game.molecules[1] || 0) * 0.5);
     const radiationMultiplier = 1 + (game.backgroundRadiation * 0.05); // 5% boost per radiation
-    game.quarks += 1 * radiationMultiplier;
+    game.quarks += 1 * radiationMultiplier * h2Bonus;
     updateUI();
 }
 
@@ -415,6 +513,7 @@ function mergeElement(elementId) {
 function initUI() {
     const mergersContainer = document.getElementById("mergers-container");
     const automationContainer = document.getElementById("automation-container");
+    const moleculesContainer = document.getElementById("molecules-container");
     const t = TRANSLATIONS[game.language] || TRANSLATIONS["en"];
 
     // Clear and build automators
@@ -434,11 +533,17 @@ function initUI() {
             <span class="cost">${t.cost}: <span id="processor-cost">250</span> ${t.quarks}</span>
             <span class="owned">${t.owned}: <span id="processor-owned">0</span></span>
         </button>
+        <button id="btn-buy-accelerator" class="upgrade-btn hidden">
+            ${t.buyAccelerator}
+            <span class="cost">${t.cost}: <span id="accelerator-cost">1000</span> ${t.quarks}</span>
+            <span class="owned">${t.owned}: <span id="accelerator-owned">0</span></span>
+        </button>
     `;
 
     document.getElementById("btn-buy-generator").onclick = buyGenerator;
     document.getElementById("btn-buy-synthesizer").onclick = buySynthesizer;
     document.getElementById("btn-buy-processor").onclick = buyProcessor;
+    document.getElementById("btn-buy-accelerator").onclick = buyAccelerator;
 
     document.getElementById("btn-prestige").onclick = doPrestige;
 
@@ -486,6 +591,39 @@ function initUI() {
         mergersContainer.appendChild(mergeBtn);
     }
 
+    // Build Molecules UI
+    if (moleculesContainer) {
+        moleculesContainer.innerHTML = "";
+        MOLECULES.forEach(mol => {
+            let reqHtml = "";
+            for (let eId in mol.reqs) {
+                const eDef = ELEMENTS.find(e => e.id == eId);
+                reqHtml += `${mol.reqs[eId]} ${eDef.symbol} `;
+            }
+            const bonusText = t[`bonus${mol.symbol}`] || `${mol.symbol} Bonus:`;
+
+            moleculesContainer.innerHTML += `
+                <div class="molecule-box hidden" id="mol-box-${mol.id}">
+                    <div class="mol-header">
+                        <strong>${mol.name} (${mol.symbol})</strong>
+                        <span>${t.owned}: <span id="mol-amt-${mol.id}">0</span></span>
+                    </div>
+                    <div class="mol-bonus">${bonusText} <span id="mol-bonus-${mol.id}">1</span></div>
+                    <button id="btn-craft-${mol.id}" class="action-btn mol-craft-btn">
+                        ${t.craft} ${mol.symbol} <span class="cost">(${reqHtml.trim()})</span>
+                    </button>
+                    <div id="mol-hint-${mol.id}" class="mol-hint hidden">${t[mol.hintKey]}</div>
+                </div>
+            `;
+        });
+
+        // Add listeners
+        MOLECULES.forEach(mol => {
+            const btn = document.getElementById(`btn-craft-${mol.id}`);
+            if(btn) btn.onclick = () => craftMolecule(mol.id);
+        });
+    }
+
     document.getElementById("btn-gather-quarks").onclick = gatherQuarks;
 
     // Spacebar shortcut for gathering
@@ -514,6 +652,66 @@ function updateUI() {
     document.getElementById("discovery-progress-fill").style.width = `${progressPct}%`;
     document.getElementById("discovery-progress-text").textContent = `${unlockedElementsCount}/8`;
     document.getElementById("discovery-progress-pct").textContent = progressPct;
+
+    // Update Molecules UI
+    const tabBtnMolecules = document.getElementById("tab-btn-molecules");
+    const tabMolecules = document.getElementById("tab-molecules");
+    if (game.hasPrestiged) {
+        if(tabBtnMolecules) tabBtnMolecules.classList.remove("hidden");
+        // Show panel if it's active in desktop mode (mobile handles via tabs)
+        if(tabMolecules && tabBtnMolecules && tabBtnMolecules.classList.contains("active")) {
+            tabMolecules.classList.remove("hidden");
+        } else if(tabMolecules && window.innerWidth > 768) {
+            tabMolecules.classList.remove("hidden");
+        }
+
+        MOLECULES.forEach(mol => {
+            const box = document.getElementById(`mol-box-${mol.id}`);
+            const hint = document.getElementById(`mol-hint-${mol.id}`);
+            const btn = document.getElementById(`btn-craft-${mol.id}`);
+            const amtSpan = document.getElementById(`mol-amt-${mol.id}`);
+            const bonusSpan = document.getElementById(`mol-bonus-${mol.id}`);
+
+            if(box) box.classList.remove("hidden");
+            if(amtSpan) amtSpan.textContent = formatNumber(game.molecules[mol.id] || 0);
+
+            // Check if player has the required elements to even see it vs hint
+            let hasSeenReqs = true;
+            let canCraft = true;
+            for (let eId in mol.reqs) {
+                if (game.elements[eId] === 0 && game.molecules[mol.id] === 0) hasSeenReqs = false;
+                if (game.elements[eId] < mol.reqs[eId]) canCraft = false;
+            }
+
+            if (game.molecules[mol.id] > 0 || hasSeenReqs) {
+                if(btn) btn.classList.remove("hidden");
+                if(hint) hint.classList.add("hidden");
+            } else {
+                if(btn) btn.classList.add("hidden");
+                if(hint) hint.classList.remove("hidden");
+            }
+            if(btn) btn.disabled = !canCraft;
+
+            // Update bonus displays
+            if(bonusSpan) {
+                let bonusVal = 1;
+                const mAmount = game.molecules[mol.id] || 0;
+                if(mol.id === 1) bonusVal = 1 + (mAmount * 0.5); // H2: 1.5x quarks per molecule
+                if(mol.id === 2) bonusVal = 1 + (mAmount * 0.25); // H2O: 1.25x processors speed
+                if(mol.id === 3) bonusVal = 1 + (mAmount * 0.25); // CO2: 1.25x synthesizer speed
+                if(mol.id === 4) bonusVal = mAmount; // CH4: +1 background radiation per tick per molecule
+
+                if (mol.id === 4) {
+                     bonusSpan.textContent = formatNumber(bonusVal);
+                } else {
+                     bonusSpan.textContent = formatNumber(bonusVal); // The translation text already includes the 'x'
+                }
+            }
+        });
+    } else {
+        if(tabBtnMolecules) tabBtnMolecules.classList.add("hidden");
+        if(tabMolecules) tabMolecules.classList.add("hidden");
+    }
 
     // Reveal elements progressively (show one tier ahead of what you have)
     const displayThreshold = Math.min(8, highestElementSeen + 1);
@@ -550,8 +748,10 @@ function updateUI() {
     document.getElementById("generator-cost").textContent = formatNumber(getGeneratorCost());
     document.getElementById("btn-buy-generator").disabled = game.quarks < getGeneratorCost();
 
+    const h2Bonus = 1 + ((game.molecules[1] || 0) * 0.5);
     const radiationMultiplier = 1 + (game.backgroundRadiation * 0.05);
-    const quarksPerSec = game.generators * radiationMultiplier;
+    const baseGenerationSpeed = 0.8;
+    const quarksPerSec = game.generators * radiationMultiplier * baseGenerationSpeed * h2Bonus;
     document.getElementById("quarks-rate").textContent = `${formatNumber(quarksPerSec)} / sec`;
 
     const synthesizerCost = getSynthesizerCost();
@@ -574,6 +774,17 @@ function updateUI() {
         document.getElementById("processor-owned").textContent = game.processors;
         document.getElementById("processor-cost").textContent = formatNumber(processorCost);
         btnProcessor.disabled = game.quarks < processorCost;
+    }
+
+    const acceleratorCost = getAcceleratorCost();
+    const btnAccelerator = document.getElementById("btn-buy-accelerator");
+
+    // Reveal accelerator once they have at least 1 processor
+    if (game.processors > 0) {
+        btnAccelerator.classList.remove("hidden");
+        document.getElementById("accelerator-owned").textContent = game.accelerators;
+        document.getElementById("accelerator-cost").textContent = formatNumber(acceleratorCost);
+        btnAccelerator.disabled = game.quarks < acceleratorCost;
     }
 
     // Update Prestige UI

@@ -342,6 +342,53 @@ footer {
 /* Utilities */
 .hidden { display: none !important; }
 
+/* Molecules UI */
+.molecules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.molecule-box {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--prestige-color);
+    border-radius: 6px;
+    padding: 15px;
+}
+
+.mol-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    color: var(--prestige-color);
+}
+
+.mol-bonus {
+    font-size: 0.9rem;
+    color: var(--success-color);
+    margin-bottom: 10px;
+}
+
+.mol-craft-btn {
+    border-color: var(--prestige-color);
+    color: var(--prestige-color);
+}
+
+.mol-craft-btn:hover:not(:disabled) {
+    background-color: var(--prestige-color);
+    color: white;
+}
+
+.mol-hint {
+    font-style: italic;
+    color: #64748b;
+    font-size: 0.9rem;
+    padding: 10px;
+    background: rgba(0,0,0,0.1);
+    border-left: 3px solid #64748b;
+}
+
 /* Progress Statistic */
 .progress-container {
     background: rgba(0,0,0,0.2);

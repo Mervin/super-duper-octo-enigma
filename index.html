@@ -17,9 +17,10 @@
             </div>
 
             <nav class="mobile-tabs">
-                <button class="tab-btn active" data-tab="tab-resources">Resources</button>
-                <button class="tab-btn" data-tab="tab-actions">Actions</button>
-                <button class="tab-btn" data-tab="tab-upgrades">Upgrades</button>
+                <button class="tab-btn active" data-tab="tab-resources" data-i18n="resources">Resources</button>
+                <button class="tab-btn" data-tab="tab-actions" data-i18n="actions">Actions</button>
+                <button class="tab-btn" data-tab="tab-upgrades" data-i18n="upgrades">Upgrades</button>
+                <button class="tab-btn hidden" id="tab-btn-molecules" data-tab="tab-molecules" data-i18n="molecules">Molecules</button>
             </nav>
         </header>
 
@@ -61,6 +62,13 @@
 
                 <div id="mergers-container">
                     <!-- Merge buttons will be generated here -->
+                </div>
+            </div>
+
+            <div id="tab-molecules" class="panel tab-content hidden">
+                <h2 data-i18n="molecules">Molecules</h2>
+                <div class="molecules-list" id="molecules-container">
+                    <!-- Molecule craft buttons will be generated here -->
                 </div>
             </div>
 
