@@ -22,9 +22,12 @@
             <div class="settings-group">
                 <label data-i18n="piskvorky_win_cond">Winning Condition:</label>
                 <div class="toggle-btns">
+                    <button id="btn-win-3" class="toggle-btn" data-val="3">3 in a row</button>
                     <button id="btn-win-4" class="toggle-btn" data-val="4">4 in a row</button>
                     <button id="btn-win-5" class="toggle-btn active" data-val="5">5 in a row</button>
+                    <button id="btn-win-custom" class="toggle-btn" data-val="custom">Custom</button>
                 </div>
+                <input type="number" id="input-win-custom" class="hidden" min="3" max="20" value="6" style="margin-top: 10px; width: 100px; padding: 5px; text-align: center; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 4px;">
             </div>
 
             <div class="lobby-controls">
@@ -45,12 +48,12 @@
         <div id="game-screen" class="screen">
             <div class="top-bar">
                 <div class="player-info" id="player-x-info">
-                    <span class="symbol symbol-x">❌</span>
+                    <span class="symbol symbol-x">X</span>
                     <span class="name">Player 1</span>
                 </div>
                 <div id="turn-indicator" class="status-message">Your Turn!</div>
                 <div class="player-info" id="player-o-info">
-                    <span class="symbol symbol-o">⭕</span>
+                    <span class="symbol symbol-o">O</span>
                     <span class="name">Player 2</span>
                 </div>
             </div>
