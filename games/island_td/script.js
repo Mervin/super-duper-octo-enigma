@@ -1,6 +1,6 @@
 const TRANSLATIONS = {
-    en: { islandTdTitle: "Island TD", gold: "Gold", lives: "Lives", wave: "Wave", backToHub: "Back to Hub", actions: "Actions", digPath: "Dig Path (10g)", buildTower: "Build Tower (20g)", waveControl: "Wave Control", startWave: "Start Wave", permaUpgrades: "Perma Upgrades", upgDmg: "Tower Dmg +1 (1 Relic)", fogInfo: "Fog: Unknown", pathInfo: "Path", grassInfo: "Grass", baseInfo: "Base", spawnInfo: "Spawn" },
-    cz: { islandTdTitle: "Ostrov TD", gold: "Zlato", lives: "Životy", wave: "Vlna", backToHub: "Zpět do Hubu", actions: "Akce", digPath: "Kopat Cestu (10g)", buildTower: "Postavit Věž (20g)", waveControl: "Ovládání Vln", startWave: "Spustit Vlnu", permaUpgrades: "Trvalá Vylepšení", upgDmg: "Poškození Věží +1 (1 Relikvie)", fogInfo: "Mlha: Neznámé", pathInfo: "Cesta", grassInfo: "Tráva", baseInfo: "Základna", spawnInfo: "Líheň" }
+    en: { islandTdTitle: "Island TD", gold: "Gold", lives: "Lives", wave: "Wave", backToHub: "Back to Hub", actions: "Actions", digPath: "Dig (10g)", buildTower: "Build Tower (20g)", waveControl: "Wave Control", startWave: "Start Wave", permaUpgrades: "Perma Upgrades", upgDmg: "Tower Dmg +1 (1 Relic)", fogInfo: "Fog: Unknown", pathInfo: "Path", grassInfo: "Grass", baseInfo: "Base", spawnInfo: "Spawn" },
+    cz: { islandTdTitle: "Ostrov TD", gold: "Zlato", lives: "Životy", wave: "Vlna", backToHub: "Zpět do Hubu", actions: "Akce", digPath: "Kopat (10g)", buildTower: "Postavit Věž (20g)", waveControl: "Ovládání Vln", startWave: "Spustit Vlnu", permaUpgrades: "Trvalá Vylepšení", upgDmg: "Poškození Věží +1 (1 Relikvie)", fogInfo: "Mlha: Neznámé", pathInfo: "Cesta", grassInfo: "Tráva", baseInfo: "Základna", spawnInfo: "Líheň" }
 };
 
 let lang = localStorage.getItem("hub_lang") || "en";
@@ -35,6 +35,7 @@ let state = {
     spawnTiles: [],
     pathTiles: [],
     waveActive: false,
+    digCount: 0,
     selectedTile: null
 };
 
@@ -69,7 +70,7 @@ function initGrid() {
                 let rand = Math.random();
                 if (rand < 0.1) hiddenType = 'spawn';
                 else if (rand < 0.2) hiddenType = 'treasure';
-                else if (rand < 0.6) hiddenType = 'path';
+
             }
 
             let tile = { r, c, type, hiddenType, el: document.createElement('div') };
@@ -135,7 +136,13 @@ function selectTile(r, c) {
 btnDig.onclick = () => {
     if (state.selectedTile && state.selectedTile.type === 'fog' && state.gold >= 10) {
         state.gold -= 10;
+        state.digCount++;
         let ht = state.selectedTile.hiddenType;
+
+        if (state.digCount === 2) {
+            ht = 'spawn';
+        }
+
         if (ht === 'spawn') {
             state.selectedTile.type = 'spawn';
             state.selectedTile.el.textContent = 'S';
@@ -143,9 +150,6 @@ btnDig.onclick = () => {
         } else if (ht === 'treasure') {
             state.gold += 25; // Treasure
             state.selectedTile.type = 'grass';
-        } else if (ht === 'path') {
-            state.selectedTile.type = 'path';
-            state.pathTiles.push(state.selectedTile);
         } else {
             state.selectedTile.type = 'grass';
         }
@@ -158,6 +162,32 @@ btnDig.onclick = () => {
 
 btnBuild.onclick = () => {
     if (state.selectedTile && state.selectedTile.type === 'grass' && state.gold >= 20) {
+        // Find which spawns currently have a valid path BEFORE we test the new tower
+        recalculatePaths();
+        let currentlyConnectedSpawns = [];
+        for (let spawnTile of state.spawnTiles) {
+            if (pathMap[spawnTile.r][spawnTile.c]) {
+                currentlyConnectedSpawns.push(spawnTile);
+            }
+        }
+
+        // Verify pathing isn't completely blocked by testing the new tower
+        recalculatePaths({r: state.selectedTile.r, c: state.selectedTile.c});
+        let blocksPath = false;
+        for (let spawnTile of currentlyConnectedSpawns) {
+            if (!pathMap[spawnTile.r][spawnTile.c]) {
+                blocksPath = true;
+                break;
+            }
+        }
+
+        if (blocksPath) {
+            // Restore path map to real state
+            recalculatePaths();
+            alert("Cannot block path to base!");
+            return;
+        }
+
         state.gold -= 20;
         let tower = {
             r: state.selectedTile.r, c: state.selectedTile.c,
@@ -168,12 +198,14 @@ btnBuild.onclick = () => {
         state.selectedTile.el.appendChild(tower.el);
         state.towers.push(tower);
         updateUI();
+        // Recalculate true pathing with newly built tower
+        recalculatePaths();
     }
 };
 
 let pathMap = [];
-function recalculatePaths() {
-    // Basic BFS from base to all spawns using paths and base
+function recalculatePaths(ignoreTowerAt = null) {
+    // Base to all reachable grass/spawn tiles
     pathMap = Array(H).fill(null).map(() => Array(W).fill(null));
     let q = [{r: state.baseTile.r, c: state.baseTile.c, dist: 0}];
     pathMap[state.baseTile.r][state.baseTile.c] = {dist: 0, next: null};
@@ -186,7 +218,16 @@ function recalculatePaths() {
             let nr = curr.r + d[0], nc = curr.c + d[1];
             if (nr>=0 && nr<H && nc>=0 && nc<W) {
                 let t = grid[nr][nc];
-                if ((t.type === 'path' || t.type === 'spawn') && !pathMap[nr][nc]) {
+
+                // Check if tile has a tower
+                let hasTower = !!state.towers.find(tw => tw.r === nr && tw.c === nc);
+
+                // If we are checking hypothetical tower placement
+                if (ignoreTowerAt && ignoreTowerAt.r === nr && ignoreTowerAt.c === nc) {
+                    hasTower = true;
+                }
+
+                if ((t.type === 'grass' || t.type === 'spawn' || t.type === 'base') && !hasTower && !pathMap[nr][nc]) {
                     pathMap[nr][nc] = {dist: curr.dist+1, next: {r: curr.r, c: curr.c}};
                     q.push({r: nr, c: nc, dist: curr.dist+1});
                 }
