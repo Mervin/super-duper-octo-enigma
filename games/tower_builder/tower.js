@@ -415,14 +415,38 @@ function renderTalents() {
 // Wave Logic
 function startWave() {
     gameState.waveActive = true;
-    gameState.enemiesToSpawn = 5 + Math.floor(gameState.wave * 2.5);
+
+    // Less enemies early on
+    gameState.enemiesToSpawn = 3 + Math.floor(gameState.wave * 1.5);
+
+    // Boss wave every 10 levels
+    if (gameState.wave % 10 === 0) {
+        gameState.enemiesToSpawn += 1; // 1 big boss plus the additional standard enemies
+        gameState.bossSpawned = false; // Track if we've spawned the boss yet
+    }
+
     gameState.enemySpawnTimer = 0;
 }
 
 function spawnEnemy() {
-    const isFlying = Math.random() < 0.2; // They can spawn on wave 1 now
-    const hp = 20 + (gameState.wave * 15);
-    const speed = isFlying ? 40 : 25;
+    let isBoss = false;
+
+    // Spawn exactly one boss per boss wave, usually as the first enemy
+    if (gameState.wave % 10 === 0 && !gameState.bossSpawned) {
+        isBoss = true;
+        gameState.bossSpawned = true;
+    }
+
+    const isFlying = !isBoss && Math.random() < 0.2; // Bosses don't fly
+
+    // Softer HP scaling for early game
+    let hp = 10 + (gameState.wave * 10);
+
+    if (isBoss) {
+        hp = hp * 5; // Boss has 5x health
+    }
+
+    const speed = isBoss ? 15 : (isFlying ? 40 : 25);
 
     // Ground enemies spawn bottom left/right and move to center
     // Flying enemies spawn top and move down to center
@@ -434,19 +458,20 @@ function spawnEnemy() {
     if (isFlying) {
         x = Math.random() * canvas.width;
         y = -20;
+        const angle = Math.atan2(targetY - y, targetX - x);
+        vx = Math.cos(angle) * speed;
+        vy = Math.sin(angle) * speed;
     } else {
         x = Math.random() < 0.5 ? -20 : canvas.width + 20;
-        y = canvas.height - 10;
+        y = canvas.height - (isBoss ? 20 : 12); // Walk strictly on the bottom floor
+        vx = x < targetX ? speed : -speed; // Move directly horizontally
+        vy = 0;
     }
 
-    const angle = Math.atan2(targetY - y, targetX - x);
-    vx = Math.cos(angle) * speed;
-    vy = Math.sin(angle) * speed;
-
     gameState.enemies.push({
-        x, y, vx, vy, hp, maxHp: hp, isFlying, targetX, targetY,
-        radius: isFlying ? 8 : 12,
-        color: isFlying ? '#c084fc' : '#f43f5e'
+        x, y, vx, vy, hp, maxHp: hp, isFlying, isBoss, targetX, targetY,
+        radius: isBoss ? 24 : (isFlying ? 8 : 12),
+        color: isBoss ? '#991b1b' : (isFlying ? '#c084fc' : '#f43f5e')
     });
 }
 
@@ -515,23 +540,30 @@ function update(dt) {
         // Flying enemies bypass blocks
         if (!e.isFlying && gridReady && gx >= 0 && gx < GRID_W && gy >= 0 && gy < GRID_H) {
             let block = gameState.grid[gx][gy];
-            if (block && block.type === 'tower') {
+            if (block) {
                 blocked = true;
 
-                // Attack the block
-                if (!e.attackCooldown) e.attackCooldown = 0;
-                e.attackCooldown -= dt;
+                if (block.type === 'base') {
+                    // Instantly damage base and remove enemy
+                    takeDamage(10);
+                    gameState.enemies.splice(i, 1);
+                    continue;
+                } else if (block.type === 'tower') {
+                    // Attack the block
+                    if (!e.attackCooldown) e.attackCooldown = 0;
+                    e.attackCooldown -= dt;
 
-                if (e.attackCooldown <= 0) {
-                    block.hp -= 10; // base enemy damage to blocks
-                    e.attackCooldown = 1.0; // 1 sec attack rate
+                    if (e.attackCooldown <= 0) {
+                        block.hp -= 10; // base enemy damage to blocks
+                        e.attackCooldown = 1.0; // 1 sec attack rate
 
-                    // Visual feedback
-                    createExplosion(e.x, e.y, 5, '#cbd5e1'); // Dust particle
+                        // Visual feedback
+                        createExplosion(e.x, e.y, 5, '#cbd5e1'); // Dust particle
 
-                    if (block.hp <= 0) {
-                        gameState.grid[gx][gy] = null; // Destroy block
-                        createExplosion(gx * CELL_SIZE + CELL_SIZE/2, gy * CELL_SIZE + CELL_SIZE/2, 15, block.color);
+                        if (block.hp <= 0) {
+                            gameState.grid[gx][gy] = null; // Destroy block
+                            createExplosion(gx * CELL_SIZE + CELL_SIZE/2, gy * CELL_SIZE + CELL_SIZE/2, 15, block.color);
+                        }
                     }
                 }
             }
@@ -542,10 +574,16 @@ function update(dt) {
             e.y = nextY;
         }
 
-        // Check if reached base
+        // Check if flying enemy reached base or ground enemy somehow clipped past
         const dist = Math.hypot(e.targetX - e.x, e.targetY - e.y);
         if (dist < 30) {
             takeDamage(10);
+            gameState.enemies.splice(i, 1);
+            continue;
+        }
+
+        // Failsafe: remove enemies that go way out of bounds
+        if (e.y > canvas.height + 100 || e.x < -100 || e.x > canvas.width + 100) {
             gameState.enemies.splice(i, 1);
             continue;
         }
@@ -650,8 +688,17 @@ function damageEnemy(index, amt) {
     if (e.hp <= 0) {
         // Die
         const yieldBonus = persistentState.talents.yieldLevel * 0.1; // +10% per level
-        if (Math.random() < (0.5 + yieldBonus)) gameState.materials += 1;
-        if (Math.random() < (0.3 + yieldBonus)) gameState.coins += 1;
+
+        if (e.isBoss) {
+            // Bosses drop huge rewards
+            gameState.materials += Math.floor(10 + yieldBonus * 20);
+            gameState.coins += Math.floor(5 + yieldBonus * 10);
+        } else {
+            // Regular enemies drop slightly more now to make early game easier
+            if (Math.random() < (0.7 + yieldBonus)) gameState.materials += 1; // Was 0.5
+            if (Math.random() < (0.4 + yieldBonus)) gameState.coins += 1; // Was 0.3
+        }
+
         updateUI();
         gameState.enemies.splice(index, 1);
     }
@@ -865,9 +912,10 @@ function canPlace(shape, gx, gy) {
                 if (gameState.grid[cx][cy] !== null) return false; // Overlap
 
                 // Check placement rule: must have a block directly underneath
-                // meaning the space (cy+1) must be occupied by an existing block/base.
+                // meaning the space (cy+1) must be occupied by an existing block/base,
+                // or it must be placed directly on the floor (GRID_H - 1).
                 if (!supported) {
-                    if (cy < GRID_H - 1 && gameState.grid[cx][cy + 1]) {
+                    if (cy === GRID_H - 1 || (cy < GRID_H - 1 && gameState.grid[cx][cy + 1])) {
                         supported = true;
                     }
                 }
