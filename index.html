@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atomic Idle</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,26 +15,48 @@
                 Background Radiation: <span id="radiation-amount">0</span>
                 <span class="tooltip">(Boosts all production by <span id="radiation-boost">0</span>%)</span>
             </div>
+
+            <nav class="mobile-tabs">
+                <button class="tab-btn active" data-tab="tab-resources" data-i18n="resources">Resources</button>
+                <button class="tab-btn" data-tab="tab-actions" data-i18n="actions">Actions</button>
+                <button class="tab-btn" data-tab="tab-upgrades" data-i18n="upgrades">Upgrades</button>
+                <button class="tab-btn hidden" id="tab-btn-molecules" data-tab="tab-molecules" data-i18n="molecules">Molecules</button>
+            </nav>
         </header>
 
         <main>
-            <div class="panel left-panel">
-                <h2>Resources</h2>
+            <div id="tab-resources" class="panel left-panel tab-content active">
+                <h2 data-i18n="resources">Resources</h2>
+
+                <!-- Progress Statistic -->
+                <div class="progress-container">
+                    <h3 data-i18n="discoveryProgress">Discovery Progress</h3>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="discovery-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="discovery-progress-text">0/8</span> (<span id="discovery-progress-pct">0</span>%)
+                    </div>
+                </div>
+
                 <div class="resource-box">
-                    <h3>Quarks</h3>
+                    <h3 data-i18n="quarks">Quarks</h3>
                     <div class="amount" id="quarks-amount">0</div>
                     <div class="rate" id="quarks-rate">0 / sec</div>
                 </div>
 
-                <div class="elements-list" id="elements-container">
-                    <!-- Elements will be generated here -->
+                <div id="periodic-table-container">
+                    <h3 data-i18n="periodicTable">Periodic Table</h3>
+                    <div class="periodic-grid" id="periodic-grid">
+                        <!-- Periodic table items generated here -->
+                    </div>
                 </div>
             </div>
 
-            <div class="panel center-panel">
-                <h2>Actions</h2>
+            <div id="tab-actions" class="panel center-panel tab-content">
+                <h2 data-i18n="actions">Actions</h2>
                 <button id="btn-gather-quarks" class="action-btn main-btn">
-                    Gather Quarks
+                    <span data-i18n="gatherQuarks">Gather Quarks</span>
                     <span class="shortcut">(Space)</span>
                 </button>
 
@@ -42,8 +65,15 @@
                 </div>
             </div>
 
-            <div class="panel right-panel">
-                <h2>Upgrades & Automation</h2>
+            <div id="tab-molecules" class="panel tab-content hidden">
+                <h2 data-i18n="molecules">Molecules</h2>
+                <div class="molecules-list" id="molecules-container">
+                    <!-- Molecule craft buttons will be generated here -->
+                </div>
+            </div>
+
+            <div id="tab-upgrades" class="panel right-panel tab-content">
+                <h2 data-i18n="upgrades">Upgrades & Automation</h2>
 
                 <div id="automation-container">
                     <button id="btn-buy-generator" class="upgrade-btn">
@@ -55,21 +85,22 @@
                 </div>
 
                 <div class="prestige-section hidden" id="prestige-section">
-                    <h2>Cosmic Reset</h2>
-                    <p>Trigger a cosmic reset to earn Background Radiation.</p>
+                    <h2 data-i18n="cosmicReset">Cosmic Reset</h2>
+                    <p data-i18n="cosmicDesc">Trigger a cosmic reset to earn Background Radiation.</p>
                     <button id="btn-prestige" class="action-btn prestige-btn">
-                        Reset for <span id="prestige-gain">0</span> Radiation
+                        <span data-i18n="resetFor">Reset for</span> <span id="prestige-gain">0</span> <span data-i18n="radiation">Radiation</span>
                     </button>
                 </div>
             </div>
         </main>
 
         <footer>
-            <div class="settings">
-                <button id="btn-save" class="setting-btn">Save</button>
-                <button id="btn-export" class="setting-btn">Export Save</button>
-                <button id="btn-import" class="setting-btn">Import Save</button>
-                <button id="btn-hard-reset" class="setting-btn danger">Wipe Save</button>
+            <div class="settings" style="flex-wrap: wrap;">
+                <button id="btn-save" class="setting-btn" data-i18n="save">Save</button>
+                <button id="btn-export" class="setting-btn" data-i18n="exportSave">Export Save</button>
+                <button id="btn-import" class="setting-btn" data-i18n="importSave">Import Save</button>
+                <button id="btn-hard-reset" class="setting-btn danger" data-i18n="wipeSave">Wipe Save</button>
+                <button id="btn-toggle-lang" class="setting-btn" style="border-color: #f59e0b; color: #f59e0b;">EN / CZ</button>
                 <span id="save-status"></span>
             </div>
         </footer>
@@ -78,23 +109,34 @@
     <!-- Modals -->
     <div id="export-modal" class="modal hidden">
         <div class="modal-content">
-            <h3>Export Save</h3>
-            <p>Copy this text to save your game safely:</p>
+            <h3 data-i18n="exportSave">Export Save</h3>
+            <p data-i18n="exportDesc">Copy this text to save your game safely:</p>
             <textarea id="export-text" readonly></textarea>
-            <button id="btn-close-export" class="action-btn">Close</button>
+            <button id="btn-close-export" class="action-btn" data-i18n="close">Close</button>
         </div>
     </div>
 
     <div id="import-modal" class="modal hidden">
         <div class="modal-content">
-            <h3>Import Save</h3>
-            <p>Paste your save text here:</p>
+            <h3 data-i18n="importSave">Import Save</h3>
+            <p data-i18n="importDesc">Paste your save text here:</p>
             <textarea id="import-text"></textarea>
-            <button id="btn-confirm-import" class="action-btn main-btn">Import</button>
-            <button id="btn-close-import" class="action-btn">Cancel</button>
+            <button id="btn-confirm-import" class="action-btn main-btn" data-i18n="importBtn">Import</button>
+            <button id="btn-close-import" class="action-btn" data-i18n="cancel">Cancel</button>
         </div>
     </div>
 
     <script src="main.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+    </script>
 </body>
 </html>
