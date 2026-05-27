@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="farmTitle">Harvest Idle</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 40%, #7bc043 40%, #5a962c 100%);
+            background-attachment: fixed;
+            color: #333; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+        header { width: 100%; background: #4a7c29; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.2); z-index: 10; position: relative; }
+        .currency { font-size: 1.5rem; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 20px; }
+        .hub-link { color: white; text-decoration: none; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 5px; }
+
+        main { display: flex; flex-direction: row; gap: 20px; margin-top: 20px; max-width: 1400px; width: 100%; padding: 0 20px; box-sizing: border-box; flex-wrap: wrap; justify-content: center; }
+
+        /* 2.5D Isometric Grid Container */
+        .farm-wrapper {
+            flex: 1; min-width: 500px; display: flex; justify-content: center; align-items: center;
+            padding: 100px 0;
+            /* No perspective distortion = true orthographic */
+            transform-style: preserve-3d;
+        }
+
+        #farm-base {
+            /* Isometric rotation */
+            transform: rotateX(60deg) rotateZ(-45deg);
+            transform-style: preserve-3d;
+            background: #4caf50;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.5); /* Drop shadow on ground */
+        }
+
+        /* 3D Walls for the farm base */
+        #farm-base::before {
+            content: ""; position: absolute;
+            top: 0; left: 0; width: 30px; height: 100%;
+            background: #2e7d32;
+            transform-origin: left;
+            transform: rotateY(-90deg);
+            border-radius: 0 0 0 8px;
+        }
+        #farm-base::after {
+            content: ""; position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 30px;
+            background: #1b5e20;
+            transform-origin: bottom;
+            transform: rotateX(90deg);
+            border-radius: 0 0 8px 0;
+        }
+
+        #farm-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(4, 100px);
+            gap: 15px;
+            transform-style: preserve-3d;
+        }
+
+        .plot {
+            width: 100px; height: 100px;
+            background-color: #8b5a2b;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s, background-color 0.2s;
+            transform-style: preserve-3d;
+            transform: translateZ(10px); /* Raised off the base */
+        }
+        .plot:hover { transform: translateZ(20px); background-color: #9c6833; }
+        .plot.locked { background-color: #555; cursor: not-allowed; opacity: 0.8; }
+
+        /* 3D Walls for plots */
+        .plot::before {
+            content: ""; position: absolute;
+            top: 0; left: 0; width: 10px; height: 100%;
+            background: #5c3a21;
+            transform-origin: left;
+            transform: rotateY(-90deg);
+            border-radius: 0 0 0 4px;
+        }
+        .plot::after {
+            content: ""; position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 10px;
+            background: #3e2615;
+            transform-origin: bottom;
+            transform: rotateX(90deg);
+            border-radius: 0 0 4px 0;
+        }
+
+        .plot.locked::before { background: #333; }
+        .plot.locked::after { background: #222; }
+
+        /* Fix the content inside the plot so it stands up vertically (undoing the iso tilt for sprites) */
+        .plot-content {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; justify-content: center; align-items: center;
+            /* Reverse the isometric tilt */
+            transform: rotateZ(45deg) rotateX(-60deg) translateY(-25px) translateZ(20px);
+            font-size: 3.5rem;
+            pointer-events: none; /* Let clicks pass through to plot */
+            text-shadow: 0px 10px 10px rgba(0,0,0,0.5); /* Shadow straight down on the screen */
+            z-index: 5;
+        }
+
+        .plot .progress { position: absolute; bottom: 5px; left: 10px; right: 10px; height: 6px; background: rgba(0,0,0,0.5); transform: translateZ(1px); border-radius: 3px; overflow: hidden; }
+        .plot .progress-fill { height: 100%; background: #32cd32; width: 0%; transition: width 1s linear; }
+
+        .side-panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); width: 320px; max-height: 80vh; overflow-y: auto; }
+        h2 { margin-top: 0; color: #4a7c29; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; border: 2px solid #ccc; border-radius: 8px; background: #f9f9f9; }
+        .list-item.interactive { cursor: pointer; }
+        .list-item.selected { border-color: #4a7c29; background: #e8f5e9; }
+        .list-item span.title { font-weight: bold; display: block; }
+        .list-item .details { text-align: right; font-size: 0.85rem; }
+
+        button { padding: 8px 15px; border: none; border-radius: 5px; background: #4a7c29; color: white; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; transition: background 0.2s; }
+        button:hover:not(:disabled) { background: #3a6220; }
+        button:disabled { background: #999; cursor: not-allowed; }
+
+        .btn-small { width: auto; padding: 5px 10px; font-size: 0.8rem; margin: 0; }
+        .btn-sell { background-color: #f39c12; }
+        .btn-sell:hover:not(:disabled) { background-color: #d68910; }
+
+        .inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .inv-item { background: #eee; border-radius: 8px; padding: 10px; text-align: center; border: 1px solid #ccc; }
+        .inv-icon { font-size: 2rem; margin-bottom: 5px; }
+        .inv-amt { font-weight: bold; }
+
+        #lang-select { background: white; color: black; border: none; padding: 5px; border-radius: 4px; }
+
+        /* Kitchen / Oven Progress */
+        .kitchen-slot { border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 15px; background: #fafafa; }
+        .kitchen-slot.active { border: 2px solid #e67e22; background: #fff3e0; }
+        .kitchen-bar { height: 10px; background: #ccc; border-radius: 5px; margin-top: 10px; overflow: hidden; }
+        .kitchen-fill { height: 100%; background: #e67e22; width: 0%; transition: width 1s linear; }
+
+        /* Actions Bar overlay */
+        .farm-actions { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 data-i18n="farmTitle" style="margin:0; font-size: 1.5rem;">Harvest Idle</h1>
+        <div class="currency"><span data-i18n="coins">Coins</span>: <span id="coins-display">0</span></div>
+        <div>
+            <select id="lang-select">
+                <option value="en">EN</option>
+                <option value="cz">CZ</option>
+            </select>
+            <a href="../../index.html" class="hub-link" data-i18n="backToHub">Back to Hub</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Farm Area -->
+        <div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+            <div class="farm-wrapper">
+                <div id="farm-base">
+                    <div id="farm-grid">
+                        <!-- Generated via JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="farm-actions" id="farm-actions-container">
+                <!-- Action buttons (e.g. Tractor harvest) injected here -->
+            </div>
+        </div>
+
+        <!-- Right Panels: Shop, Upgrades, Inventory, Kitchen -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+            <div class="side-panel">
+                <h2 data-i18n="inventory">Inventory</h2>
+                <div class="inv-grid" id="inventory-container">
+                    <!-- Generated via JS -->
+                </div>
+            </div>
+
+            <div class="side-panel">
+                <h2 data-i18n="kitchen">Kitchen (Processing)</h2>
+                <div id="kitchen-slots-container">
+                    <div class="kitchen-slot" id="oven-1">
+                        <div id="oven-1-content">Idle</div>
+                        <div class="kitchen-bar"><div class="kitchen-fill" id="oven-1-fill"></div></div>
+                        <button class="btn-small" id="btn-collect-oven-1" style="display:none; width:100%; margin-top:10px;" data-i18n="collect">Collect</button>
+                    </div>
+                </div>
+                <h3 style="font-size: 1rem; margin-top:10px;" data-i18n="recipes">Recipes</h3>
+                <div id="recipes-container">
+                    <!-- Generated via JS -->
+                </div>
+            </div>
+
+            <div class="side-panel">
+                <h2 data-i18n="shop">Shop & Seeds</h2>
+                <div id="seeds-container">
+                    <!-- Generated via JS -->
+                </div>
+
+                <h2 data-i18n="upgrades" style="margin-top:20px;">Tools & Upgrades</h2>
+                <div id="upgrades-container">
+                    <!-- Generated via JS -->
+                </div>
+
+                <hr style="margin: 15px 0;">
+                <button id="btn-buy-plot"><span data-i18n="buyPlot">Buy Plot</span> (<span id="plot-cost">50</span>)</button>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
