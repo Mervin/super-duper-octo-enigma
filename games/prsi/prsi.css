@@ -33,12 +33,24 @@
     color: var(--accent-color);
     text-decoration: none;
 }
-.status-indicator {
+.header-controls {
     position: absolute;
     right: 20px;
     top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.status-indicator {
     color: #94a3b8;
     font-size: 0.9rem;
+}
+#lang-select {
+    background: var(--panel-bg);
+    color: var(--text-light);
+    border: 1px solid var(--border-color);
+    padding: 0.2rem;
+    border-radius: 4px;
 }
 .status-indicator.connected { color: #4ade80; }
 .status-indicator.error { color: #f87171; }
