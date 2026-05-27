@@ -117,7 +117,7 @@ function renderAll() {
 function createCardEl(card) {
     const el = document.createElement('div');
     el.className = `card ${card.faceUp ? card.color : 'back'}`;
-    el.innerHTML = card.faceUp ? `${card.value}<br>${card.suit}` : '';
+    el.innerHTML = card.faceUp ? `<div class="card-content">${card.value}<br>${card.suit}</div>` : '';
     el.dataset.id = card.id;
     if (card.faceUp) {
         el.draggable = true;
@@ -325,6 +325,115 @@ function moveCards(cards, sType, sIdx, tType, tIdx) {
     }
 
     renderAll();
+    checkWinCondition();
+}
+
+function checkWinCondition() {
+    let win = true;
+    for (let i = 0; i < 4; i++) {
+        if (state.foundations[i].length !== 13) {
+            win = false;
+            break;
+        }
+    }
+    if (win) {
+        triggerWinAnimation();
+    }
+}
+
+// Global variables for animation
+let animatingCards = [];
+let animationFrameId = null;
+
+function triggerWinAnimation() {
+    if (animationFrameId) return; // already running
+
+    // Clear board events
+    document.querySelectorAll('.card').forEach(el => {
+        el.draggable = false;
+        el.onclick = null;
+    });
+
+    animatingCards = [];
+
+    // We will pop one card from the foundations one by one to animate
+    let fPiles = [0, 1, 2, 3];
+
+    function animateNextCard() {
+        let availablePiles = fPiles.filter(i => state.foundations[i].length > 0);
+        if (availablePiles.length === 0) {
+            return; // done
+        }
+
+        let pIdx = availablePiles[Math.floor(Math.random() * availablePiles.length)];
+        let card = state.foundations[pIdx].pop();
+
+        // Find its element
+        let fPileEl = document.getElementById(`f${pIdx}`);
+        let cardEls = fPileEl.querySelectorAll('.card');
+        if (cardEls.length === 0) return; // Should not happen
+
+        let cardEl = cardEls[cardEls.length - 1];
+
+        // Move to body so it can freely bounce over everything
+        let rect = cardEl.getBoundingClientRect();
+        cardEl.style.position = 'fixed';
+        cardEl.style.left = rect.left + 'px';
+        cardEl.style.top = rect.top + 'px';
+        cardEl.style.zIndex = 10000 + animatingCards.length;
+        document.body.appendChild(cardEl);
+
+        let vx = (Math.random() * 10) - 5;
+        if (vx >= 0 && vx < 2) vx = 2;
+        if (vx < 0 && vx > -2) vx = -2;
+        let vy = - (Math.random() * 10 + 5);
+
+        animatingCards.push({
+            el: cardEl,
+            x: rect.left,
+            y: rect.top,
+            vx: vx,
+            vy: vy
+        });
+
+        setTimeout(animateNextCard, 200);
+    }
+
+    animateNextCard();
+    animationLoop();
+}
+
+function animationLoop() {
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+
+    for (let i = 0; i < animatingCards.length; i++) {
+        let c = animatingCards[i];
+
+        c.vy += 0.5; // gravity
+        c.x += c.vx;
+        c.y += c.vy;
+
+        // bounce off bottom
+        if (c.y + 140 > h) { // card height is 140
+            c.y = h - 140;
+            c.vy = -c.vy * 0.7; // bounce with dampening
+        }
+
+        // bounce off sides
+        if (c.x < 0) {
+            c.x = 0;
+            c.vx = -c.vx;
+        } else if (c.x + 100 > w) { // card width is 100
+            c.x = w - 100;
+            c.vx = -c.vx;
+        }
+
+        c.el.style.left = c.x + 'px';
+        c.el.style.top = c.y + 'px';
+    }
+
+    animationFrameId = requestAnimationFrame(animationLoop);
 }
 
 initGame();
