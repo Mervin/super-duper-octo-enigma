@@ -11,7 +11,13 @@
     <header>
         <a href="../../index.html" class="back-link">← Back to Hub</a>
         <h1 data-i18n="prsi_title">Prší</h1>
-        <div id="connection-status" class="status-indicator">Connecting...</div>
+        <div class="header-controls">
+            <select id="lang-select">
+                <option value="en">EN</option>
+                <option value="cz">CZ</option>
+            </select>
+            <div id="connection-status" class="status-indicator">Connecting...</div>
+        </div>
     </header>
 
     <main class="game-container">
@@ -85,7 +91,7 @@
 
         <div id="game-over-screen" class="screen overlay hidden">
             <div class="overlay-content">
-                <h2 id="winner-message">You Win!</h2>
+                <h2 id="winner-message" data-winner-key="prsi_you_win" data-i18n="prsi_you_win">You Win!</h2>
                 <button id="btn-play-again" class="action-btn" data-i18n="prsi_play_again">Play Again</button>
                 <button id="btn-leave" class="action-btn secondary" data-i18n="prsi_leave">Leave</button>
             </div>

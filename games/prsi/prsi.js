@@ -1,6 +1,71 @@
 import { database } from '../../firebase-config.js';
 import { ref, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+const TRANSLATIONS = {
+    en: {
+        prsi_title: "Prší", prsi_lobby: "Lobby", prsi_play_ai: "Play vs AI", prsi_create_room: "Create Multiplayer Room",
+        prsi_share_link: "Share this link to invite a player:", prsi_waiting: "Waiting for opponent to join...",
+        prsi_rules_title: "Rules Hint", prsi_rule_7: "7: Next player draws 2 cards (unless they play a 7).",
+        prsi_rule_ace: "Ace (Eso): Skips the next player (unless they play an Ace).",
+        prsi_rule_svrsek: "Svršek (Over/Queen): Can be played on any suit, changes the active suit.",
+        prsi_rule_match: "You must match the suit or the rank of the top card.",
+        prsi_choose_suit: "Choose Suit:", prsi_play_again: "Play Again", prsi_leave: "Leave",
+        prsi_you_win: "You Win!", prsi_opp_wins: "Opponent Wins!",
+        prsi_turn_yours: "Your turn!", prsi_turn_opp: "Opponent's turn...", prsi_turn_ai: "AI is thinking...",
+        prsi_draw_penalty: "Draw {0} cards or play a 7!",
+        prsi_ai_bot: "AI Bot", prsi_real_player: "Real Player",
+        prsi_status_ready: "Ready", prsi_status_waiting: "Waiting for player...",
+        prsi_status_connecting: "Connecting to room...", prsi_status_connected: "Connected"
+    },
+    cz: {
+        prsi_title: "Prší", prsi_lobby: "Lobby", prsi_play_ai: "Hrát proti AI", prsi_create_room: "Vytvořit Multiplayer Místnost",
+        prsi_share_link: "Sdílejte tento odkaz pro pozvání hráče:", prsi_waiting: "Čekám na připojení soupeře...",
+        prsi_rules_title: "Nápověda k pravidlům", prsi_rule_7: "7: Další hráč si lízne 2 karty (pokud nezahraje 7).",
+        prsi_rule_ace: "Eso: Přeskočí dalšího hráče (pokud nezahraje Eso).",
+        prsi_rule_svrsek: "Svršek: Může být zahrán na libovolnou barvu, mění aktivní barvu.",
+        prsi_rule_match: "Musíte ctít barvu nebo hodnotu vrchní karty.",
+        prsi_choose_suit: "Vyberte barvu:", prsi_play_again: "Hrát Znovu", prsi_leave: "Odejít",
+        prsi_you_win: "Vyhrál jsi!", prsi_opp_wins: "Soupeř vyhrál!",
+        prsi_turn_yours: "Jsi na tahu!", prsi_turn_opp: "Soupeř je na tahu...", prsi_turn_ai: "AI přemýšlí...",
+        prsi_draw_penalty: "Lízni si {0} karet nebo zahraj 7!",
+        prsi_ai_bot: "AI Bot", prsi_real_player: "Skutečný Hráč",
+        prsi_status_ready: "Připraven", prsi_status_waiting: "Čekání na hráče...",
+        prsi_status_connecting: "Připojování k místnosti...", prsi_status_connected: "Připojeno"
+    }
+};
+
+let lang = localStorage.getItem("hub_lang") || "en";
+const langSelect = document.getElementById('lang-select');
+if (langSelect) {
+    langSelect.value = lang;
+    langSelect.addEventListener('change', (e) => {
+        lang = e.target.value;
+        localStorage.setItem("hub_lang", lang);
+        updateTranslations();
+    });
+}
+
+function updateTranslations() {
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+            if (el.tagName === "OPTION") el.textContent = TRANSLATIONS[lang][key];
+            else el.textContent = TRANSLATIONS[lang][key];
+        }
+    });
+    // Update dynamic text if game is running
+    if (gameOver) {
+        winnerMessage.textContent = TRANSLATIONS[lang][winnerMessage.dataset.winnerKey] || winnerMessage.textContent;
+    }
+    if (opponentNameSpan.textContent === TRANSLATIONS['en']['prsi_ai_bot'] || opponentNameSpan.textContent === TRANSLATIONS['cz']['prsi_ai_bot']) {
+        opponentNameSpan.textContent = TRANSLATIONS[lang]['prsi_ai_bot'];
+    } else if (opponentNameSpan.textContent === TRANSLATIONS['en']['prsi_real_player'] || opponentNameSpan.textContent === TRANSLATIONS['cz']['prsi_real_player']) {
+        opponentNameSpan.textContent = TRANSLATIONS[lang]['prsi_real_player'];
+    }
+    renderGame(); // re-render status
+}
+
+
 // DOM Elements
 const lobbyScreen = document.getElementById('lobby-screen');
 const gameScreen = document.getElementById('game-screen');
@@ -61,6 +126,7 @@ const RANK_LABELS = {
 
 // Initialization
 function init() {
+    updateTranslations();
     checkUrlForRoom();
 
     btnPlayAi.addEventListener('click', startAIGame);
@@ -98,7 +164,7 @@ function checkUrlForRoom() {
         isHost = false;
         joinMultiplayerRoom(room);
     } else {
-        connectionStatus.textContent = "Ready";
+        connectionStatus.textContent = TRANSLATIONS[lang]['prsi_status_ready'];
         connectionStatus.className = "status-indicator connected";
     }
 }
@@ -194,14 +260,14 @@ function renderGame() {
     if (gameOver) return;
     if (isMyTurn) {
         if (drawPenalty > 0) {
-            gameStatusDiv.textContent = `Draw ${drawPenalty} cards or play a 7!`;
+            gameStatusDiv.textContent = TRANSLATIONS[lang]['prsi_draw_penalty'].replace('{0}', drawPenalty);
             gameStatusDiv.style.color = '#ef4444'; // Red
         } else {
-            gameStatusDiv.textContent = "Your turn!";
+            gameStatusDiv.textContent = TRANSLATIONS[lang]['prsi_turn_yours'];
             gameStatusDiv.style.color = '#4ade80'; // Green
         }
     } else {
-        gameStatusDiv.textContent = isMultiplayer ? "Opponent's turn..." : "AI is thinking...";
+        gameStatusDiv.textContent = isMultiplayer ? TRANSLATIONS[lang]['prsi_turn_opp'] : TRANSLATIONS[lang]['prsi_turn_ai'];
         gameStatusDiv.style.color = '#94a3b8';
     }
 
@@ -267,7 +333,7 @@ function startAIGame() {
     lobbyScreen.classList.remove('active');
     gameScreen.classList.add('active');
     gameOverScreen.classList.add('hidden');
-    opponentNameSpan.textContent = "AI Bot";
+    opponentNameSpan.textContent = TRANSLATIONS[lang]['prsi_ai_bot'];
 
     deck = createDeck();
     dealInitialCards();
@@ -340,9 +406,16 @@ function applyCardEffectAndEndTurn(card) {
     }
 
     checkWin();
-    if (gameOver) return;
+
+    // Always render game so the last card played is visually moved to discard pile
+    renderGame();
 
     if (isMultiplayer) {
+        // If game is over, we still need to sync the win state to the opponent!
+        if (gameOver) {
+            syncState(false);
+            return;
+        }
         // If Ace, technically we skip opponent, so it remains our turn.
         // But for simplicity in 2 player, Ace means play again.
         if (!skipNext) {
@@ -350,6 +423,7 @@ function applyCardEffectAndEndTurn(card) {
         }
         syncState(!skipNext);
     } else {
+        if (gameOver) return;
         if (!skipNext) {
             isMyTurn = false;
             renderGame();
@@ -434,11 +508,13 @@ function aiTurn() {
 function checkWin() {
     if (hand.length === 0) {
         gameOver = true;
-        winnerMessage.textContent = "You Win!";
+        winnerMessage.dataset.winnerKey = 'prsi_you_win';
+        winnerMessage.textContent = TRANSLATIONS[lang]['prsi_you_win'];
         gameOverScreen.classList.remove('hidden');
     } else if ((isMultiplayer && opponentHandCount === 0) || (!isMultiplayer && opponentHand.length === 0)) {
         gameOver = true;
-        winnerMessage.textContent = "Opponent Wins!";
+        winnerMessage.dataset.winnerKey = 'prsi_opp_wins';
+        winnerMessage.textContent = TRANSLATIONS[lang]['prsi_opp_wins'];
         gameOverScreen.classList.remove('hidden');
     }
 }
@@ -461,7 +537,7 @@ function createMultiplayerRoom() {
     const link = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
     inviteLinkInput.value = link;
 
-    connectionStatus.textContent = "Waiting for player...";
+    connectionStatus.textContent = TRANSLATIONS[lang]['prsi_status_waiting'];
 
     // Init DB state
     const roomRef = ref(database, `prsi/${roomId}`);
@@ -502,7 +578,7 @@ function joinMultiplayerRoom(roomToJoin) {
     roomId = roomToJoin;
     isHost = false;
 
-    connectionStatus.textContent = "Connecting to room...";
+    connectionStatus.textContent = TRANSLATIONS[lang]['prsi_status_connecting'];
 
     const roomRef = ref(database, `prsi/${roomId}`);
     get(roomRef).then((snapshot) => {
@@ -537,8 +613,8 @@ function startMultiplayerGame() {
     lobbyScreen.classList.remove('active');
     gameScreen.classList.add('active');
     gameOverScreen.classList.add('hidden');
-    opponentNameSpan.textContent = "Real Player";
-    connectionStatus.textContent = "Connected";
+    opponentNameSpan.textContent = TRANSLATIONS[lang]['prsi_real_player'];
+    connectionStatus.textContent = TRANSLATIONS[lang]['prsi_status_connected'];
     connectionStatus.className = "status-indicator connected";
 
     // Setup listener for game state
@@ -573,7 +649,10 @@ function startMultiplayerGame() {
         gameOver = data.gameState.gameOver;
 
         if (gameOver) {
-            winnerMessage.textContent = data.gameState.winner === myRole ? "You Win!" : "Opponent Wins!";
+            const isWin = data.gameState.winner === myRole;
+            const key = isWin ? 'prsi_you_win' : 'prsi_opp_wins';
+            winnerMessage.dataset.winnerKey = key;
+            winnerMessage.textContent = TRANSLATIONS[lang][key];
             gameOverScreen.classList.remove('hidden');
         }
 
