@@ -7,7 +7,7 @@ A web-based hub containing a collection of idle, strategy, and classic games. Al
 ### 1. Atomic Idle
 Harvest quarks, synthesize base elements, merge upwards to create heavier elements, and discover complex molecules. Features a prestige "Cosmic Reset" system.
 
-### 2. Farm Idle
+### 2. Harvest Idle
 A Farmville-like clone where you manage plots of land, plant seeds, wait in real-time, and harvest crops for profit. Includes offline progression!
 
 ### 3. Island TD
