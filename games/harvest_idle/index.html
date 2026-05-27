@@ -27,23 +27,23 @@
 
         #farm-base {
             /* Isometric rotation */
-            transform: rotateX(60deg) rotateZ(-45deg);
+            transform: rotateX(60deg) rotateZ(45deg);
             transform-style: preserve-3d;
             background: #4caf50;
             padding: 20px;
             border-radius: 8px;
             position: relative;
-            box-shadow: 10px 10px 30px rgba(0,0,0,0.5); /* Drop shadow on ground */
+            box-shadow: -10px 10px 30px rgba(0,0,0,0.5); /* Drop shadow on ground */
         }
 
         /* 3D Walls for the farm base */
         #farm-base::before {
             content: ""; position: absolute;
-            top: 0; left: 0; width: 30px; height: 100%;
+            top: 0; right: 0; width: 30px; height: 100%;
             background: #2e7d32;
-            transform-origin: left;
-            transform: rotateY(-90deg);
-            border-radius: 0 0 0 8px;
+            transform-origin: right;
+            transform: rotateY(90deg);
+            border-radius: 0 8px 0 0;
         }
         #farm-base::after {
             content: ""; position: absolute;
@@ -78,11 +78,11 @@
         /* 3D Walls for plots */
         .plot::before {
             content: ""; position: absolute;
-            top: 0; left: 0; width: 10px; height: 100%;
+            top: 0; right: 0; width: 10px; height: 100%;
             background: #5c3a21;
-            transform-origin: left;
-            transform: rotateY(-90deg);
-            border-radius: 0 0 0 4px;
+            transform-origin: right;
+            transform: rotateY(90deg);
+            border-radius: 0 4px 0 0;
         }
         .plot::after {
             content: ""; position: absolute;
@@ -102,7 +102,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             display: flex; justify-content: center; align-items: center;
             /* Reverse the isometric tilt */
-            transform: rotateZ(45deg) rotateX(-60deg) translateY(-25px) translateZ(20px);
+            transform: rotateZ(-45deg) rotateX(-60deg) translateY(-25px) translateZ(20px);
             font-size: 3.5rem;
             pointer-events: none; /* Let clicks pass through to plot */
             text-shadow: 0px 10px 10px rgba(0,0,0,0.5); /* Shadow straight down on the screen */
@@ -174,8 +174,8 @@
             </div>
         </div>
 
-        <!-- Right Panels: Shop, Upgrades, Inventory, Kitchen -->
-        <div style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Panels: Shop, Upgrades, Inventory, Kitchen -->
+        <div style="display:flex; flex-direction:row; flex-wrap:wrap; gap:20px; justify-content:center; width: 100%;">
 
             <div class="side-panel">
                 <h2 data-i18n="inventory">Inventory</h2>

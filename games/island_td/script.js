@@ -118,6 +118,14 @@ function updateUI() {
 }
 
 function selectTile(r, c) {
+    if (state.selectedTile === grid[r][c]) {
+        if (state.selectedTile.type === 'fog' && !btnDig.disabled) {
+            btnDig.onclick();
+        } else if (state.selectedTile.type === 'grass' && !btnBuild.disabled) {
+            btnBuild.onclick();
+        }
+        return;
+    }
     if (state.selectedTile) state.selectedTile.el.classList.remove('selected');
     state.selectedTile = grid[r][c];
     state.selectedTile.el.classList.add('selected');
