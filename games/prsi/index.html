@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prší</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="prsi.css">
+</head>
+<body>
+    <header>
+        <a href="../../index.html" class="back-link">← Back to Hub</a>
+        <h1 data-i18n="prsi_title">Prší</h1>
+        <div id="connection-status" class="status-indicator">Connecting...</div>
+    </header>
+
+    <main class="game-container">
+        <div id="lobby-screen" class="screen active">
+            <h2 data-i18n="prsi_lobby">Lobby</h2>
+            <div class="lobby-controls">
+                <button id="btn-play-ai" class="action-btn" data-i18n="prsi_play_ai">Play vs AI</button>
+                <div class="divider">or</div>
+                <button id="btn-create-room" class="action-btn" data-i18n="prsi_create_room">Create Multiplayer Room</button>
+                <div id="invite-link-container" class="hidden">
+                    <p data-i18n="prsi_share_link">Share this link to invite a player:</p>
+                    <input type="text" id="invite-link" readonly>
+                    <button id="btn-copy-link" class="action-btn small">Copy</button>
+                </div>
+                <p id="waiting-message" class="hidden" data-i18n="prsi_waiting">Waiting for opponent to join...</p>
+            </div>
+
+            <div class="rules-hint">
+                <h3 data-i18n="prsi_rules_title">Rules Hint</h3>
+                <ul class="rules-list">
+                    <li data-i18n="prsi_rule_7">7: Next player draws 2 cards (unless they play a 7).</li>
+                    <li data-i18n="prsi_rule_ace">Ace (Eso): Skips the next player (unless they play an Ace).</li>
+                    <li data-i18n="prsi_rule_svrsek">Svršek (Over/Queen): Can be played on any suit, changes the active suit.</li>
+                    <li data-i18n="prsi_rule_match">You must match the suit or the rank of the top card.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="top-bar">
+                <div id="opponent-info" class="player-info">
+                    <span class="avatar">🤖</span>
+                    <span id="opponent-name">Opponent</span>
+                    <span id="opponent-card-count" class="card-count-badge">4</span>
+                </div>
+                <div id="game-status" class="status-message">Your turn!</div>
+            </div>
+
+            <div class="play-area">
+                <div id="deck" class="deck card-stack" title="Draw Card">
+                    <div class="card card-back"></div>
+                </div>
+                <div id="discard-pile" class="discard-pile card-stack">
+                    <!-- Top card injected here -->
+                </div>
+
+                <div id="suit-selector" class="suit-selector hidden">
+                    <h3 data-i18n="prsi_choose_suit">Choose Suit:</h3>
+                    <div class="suits-row">
+                        <button class="suit-btn" data-suit="hearts">❤️</button>
+                        <button class="suit-btn" data-suit="bells">🔔</button>
+                        <button class="suit-btn" data-suit="acorns">🌰</button>
+                        <button class="suit-btn" data-suit="leaves">🍃</button>
+                    </div>
+                </div>
+                <div id="active-suit-indicator" class="active-suit-indicator hidden">
+                    <!-- Shown when Svršek changes suit -->
+                </div>
+            </div>
+
+            <div class="bottom-bar">
+                <div id="player-hand" class="hand">
+                    <!-- Player cards injected here -->
+                </div>
+                <div id="player-info" class="player-info current-player">
+                    <span class="avatar">👤</span>
+                    <span id="player-name">You</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="screen overlay hidden">
+            <div class="overlay-content">
+                <h2 id="winner-message">You Win!</h2>
+                <button id="btn-play-again" class="action-btn" data-i18n="prsi_play_again">Play Again</button>
+                <button id="btn-leave" class="action-btn secondary" data-i18n="prsi_leave">Leave</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="prsi.js"></script>
+</body>
+</html>

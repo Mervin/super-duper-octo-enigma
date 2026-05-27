@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piškvorky (Gomoku)</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="piskvorky.css">
+</head>
+<body>
+    <header>
+        <a href="../../index.html" class="back-link">← Back to Hub</a>
+        <h1 data-i18n="piskvorky_title">Piškvorky</h1>
+        <div id="connection-status" class="status-indicator">Connecting...</div>
+    </header>
+
+    <main class="game-container">
+
+        <div id="lobby-screen" class="screen active">
+            <h2 data-i18n="piskvorky_lobby">Game Setup</h2>
+
+            <div class="settings-group">
+                <label data-i18n="piskvorky_win_cond">Winning Condition:</label>
+                <div class="toggle-btns">
+                    <button id="btn-win-4" class="toggle-btn" data-val="4">4 in a row</button>
+                    <button id="btn-win-5" class="toggle-btn active" data-val="5">5 in a row</button>
+                </div>
+            </div>
+
+            <div class="lobby-controls">
+                <button id="btn-play-hotseat" class="action-btn" data-i18n="piskvorky_hotseat">Local Hotseat</button>
+                <button id="btn-play-ai" class="action-btn" data-i18n="piskvorky_ai">Play vs AI</button>
+                <div class="divider">or</div>
+                <button id="btn-create-room" class="action-btn" data-i18n="piskvorky_create_mp">Create Multiplayer Room</button>
+
+                <div id="invite-link-container" class="hidden">
+                    <p data-i18n="piskvorky_share_link">Share this link to invite a player:</p>
+                    <input type="text" id="invite-link" readonly>
+                    <button id="btn-copy-link" class="action-btn small">Copy</button>
+                </div>
+                <p id="waiting-message" class="hidden" data-i18n="piskvorky_waiting">Waiting for opponent to join...</p>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="top-bar">
+                <div class="player-info" id="player-x-info">
+                    <span class="symbol symbol-x">❌</span>
+                    <span class="name">Player 1</span>
+                </div>
+                <div id="turn-indicator" class="status-message">Your Turn!</div>
+                <div class="player-info" id="player-o-info">
+                    <span class="symbol symbol-o">⭕</span>
+                    <span class="name">Player 2</span>
+                </div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="game-canvas"></canvas>
+            </div>
+            <div style="text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 5px;">Right-click and drag to pan</div>
+        </div>
+
+        <div id="game-over-screen" class="screen overlay hidden">
+            <div class="overlay-content">
+                <h2 id="winner-message">Player Wins!</h2>
+                <button id="btn-play-again" class="action-btn" data-i18n="piskvorky_play_again">Play Again</button>
+                <button id="btn-leave" class="action-btn secondary" data-i18n="piskvorky_leave">Leave</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module" src="piskvorky.js"></script>
+</body>
+</html>

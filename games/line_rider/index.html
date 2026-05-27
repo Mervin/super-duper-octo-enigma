@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Rider Clone</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="linerider.css">
+    <!-- Matter.js Physics Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+</head>
+<body>
+    <header>
+        <a href="../../index.html" class="back-link">← Back to Hub</a>
+        <h1 data-i18n="linerider_title">Stick Slider</h1>
+        <div id="status-msg" class="status-indicator">Editor Mode</div>
+    </header>
+
+    <main class="game-container">
+        <div class="toolbar">
+            <button id="btn-draw" class="action-btn small active" title="Draw Line">✏️ Draw</button>
+            <button id="btn-erase" class="action-btn small" title="Erase Line">🧹 Erase</button>
+            <div class="divider">|</div>
+            <button id="btn-start-pos" class="action-btn small secondary" title="Place Start Position">🏁 Start Pos</button>
+            <button id="btn-finish-pos" class="action-btn small secondary" title="Place Finish Line">🏆 Finish</button>
+            <button id="btn-danger" class="action-btn small danger-btn" title="Place Spikes/Danger">💥 Danger</button>
+            <div class="divider">|</div>
+            <button id="btn-play" class="action-btn small play-btn">▶️ Play</button>
+            <button id="btn-stop" class="action-btn small stop-btn hidden">⏹️ Stop</button>
+            <button id="btn-clear" class="action-btn small">Clear All</button>
+            <div class="divider">|</div>
+            <button id="btn-share" class="action-btn small">🔗 Share Track</button>
+        </div>
+
+        <div id="share-container" class="share-container hidden">
+            <span>Share link:</span>
+            <input type="text" id="share-link" readonly>
+            <button id="btn-copy-link" class="action-btn small">Copy</button>
+            <button id="btn-close-share" class="action-btn small secondary">Close</button>
+        </div>
+
+        <div class="canvas-wrapper">
+            <!-- Panning/Zooming container -->
+            <div id="render-container"></div>
+            <!-- Overlay canvas for drawing (active only in edit mode) -->
+            <canvas id="draw-canvas"></canvas>
+        </div>
+
+        <div id="level-complete-screen" class="screen overlay hidden">
+            <div class="overlay-content">
+                <h2>Level Complete!</h2>
+                <button id="btn-back-editor" class="action-btn">Back to Editor</button>
+            </div>
+        </div>
+
+        <div id="level-failed-screen" class="screen overlay hidden">
+            <div class="overlay-content">
+                <h2 style="color: #f87171;">You Died!</h2>
+                <button id="btn-retry" class="action-btn">Retry</button>
+                <button id="btn-edit" class="action-btn secondary">Edit Track</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="linerider.js"></script>
+</body>
+</html>

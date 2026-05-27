@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Builder</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="tower.css">
+</head>
+<body>
+    <header>
+        <a href="../../index.html" class="back-link">← Back to Hub</a>
+        <h1 data-i18n="tower_title">Tower Builder</h1>
+        <div class="stats-bar">
+            <div>Base HP: <span id="base-hp">100</span>/100</div>
+            <div>Wave: <span id="wave-num">1</span></div>
+            <div>Materials: <span id="materials-count">0</span></div>
+            <div>Coins: <span id="coins-count">0</span></div>
+        </div>
+    </header>
+
+    <main class="game-container">
+
+        <div class="left-panel">
+            <h3>Shop (Cost: <span id="shop-cost">10</span> Mat)</h3>
+            <div id="shop-blocks" class="shop-blocks">
+                <!-- 3 random blocks generated here -->
+                <div class="shop-placeholder">Defeat enemies to get materials!</div>
+            </div>
+
+            <h3 style="margin-top: 20px;">Talents</h3>
+            <div class="talents-container">
+                <button class="talent-btn" id="btn-upg-dmg">Dmg +1 <br>(<span id="cost-dmg">10</span>c)</button>
+                <button class="talent-btn" id="btn-upg-speed">Speed +10% <br>(<span id="cost-speed">15</span>c)</button>
+                <button class="talent-btn" id="btn-upg-hp">Base HP +20 <br>(<span id="cost-hp">20</span>c)</button>
+            </div>
+        </div>
+
+        <div class="center-panel">
+            <canvas id="game-canvas" width="600" height="600"></canvas>
+            <div class="canvas-controls">
+                <button id="btn-rotate" class="action-btn small">Rotate Block (R)</button>
+                <button id="btn-next-wave" class="action-btn small secondary">Summon Wave (Bonus)</button>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="screen overlay hidden">
+            <div class="overlay-content">
+                <h2>Base Destroyed!</h2>
+                <p>You reached Wave <span id="final-wave">1</span></p>
+                <button id="btn-restart" class="action-btn">Restart</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="tower.js"></script>
+</body>
+</html>
