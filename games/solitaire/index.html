@@ -10,16 +10,26 @@
         #game-board { width: 900px; position: relative; height: 700px; }
         .pile { width: 100px; height: 140px; border: 2px solid rgba(255,255,255,0.2); border-radius: 5px; position: absolute; }
         .card { width: 100px; height: 140px; background-color: white; border: 1px solid #333; border-radius: 5px; position: absolute; display: flex; font-size: 1.5rem; font-weight: bold; cursor: grab; user-select: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); background-image: url('data:image/svg+xml;utf8,<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="white"/></svg>'); }
-        .card-content { position: absolute; top: 5px; left: 8px; line-height: 1.2; text-align: left; }
+        .card-content { position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 4px; box-sizing: border-box; }
+        .card-corner { font-size: 1.2rem; line-height: 1; text-align: center; width: 1.5rem; }
+        .card-corner.bottom { transform: rotate(180deg); align-self: flex-end; }
+        .card-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; align-content: center; width: 60%; height: 75%; }
+        .card-center.ace { font-size: 3rem; }
+        .card-center.face { font-size: 2.5rem; }
+        .card-center-symbols { font-size: 1.2rem; line-height: 1; position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+        .sym { position: absolute; text-align: center; width: 1.2rem; line-height: 1.2rem; margin-top: -0.6rem; margin-left: -0.6rem; transform: none; }
+        .sym.flipped { transform: rotate(180deg); }
         .card.back { background-color: #0b3d91; background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px); color: transparent !important; cursor: default; }
         .red { color: red; }
         .black { color: black; }
         .dragging { z-index: 1000 !important; opacity: 0.9; cursor: grabbing; }
         button, select { padding: 5px 10px; font-size: 1rem; }
         #lang-select { position: absolute; top: 10px; right: 10px; }
+        #fireworks-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; display: none; }
     </style>
 </head>
 <body>
+    <canvas id="fireworks-canvas"></canvas>
     <select id="lang-select">
         <option value="en">EN</option>
         <option value="cz">CZ</option>
