@@ -1,0 +1,151 @@
+.game-container {
+    width: 100%;
+    max-width: 1000px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    position: relative;
+}
+
+.stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fcd34d;
+}
+
+.left-panel {
+    width: 250px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.shop-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+    flex: 1;
+}
+
+.shop-block-item {
+    background: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.shop-block-item:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+.shop-block-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.shop-block-canvas {
+    background: rgba(0,0,0,0.5);
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+
+.shop-placeholder {
+    color: #94a3b8;
+    text-align: center;
+    font-style: italic;
+    margin-top: 20px;
+}
+
+.talents-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.talent-btn {
+    background: #0f172a;
+    color: var(--text-color);
+    border: 1px solid #334155;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+}
+.talent-btn:hover { background: #1e293b; border-color: var(--accent-color); }
+.talent-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.center-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#game-canvas {
+    background: #0b0f19; /* Darker than panel */
+    border: 2px solid #334155;
+    border-radius: 8px;
+    cursor: crosshair;
+}
+
+.canvas-controls {
+    margin-top: 15px;
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Re-use from prsi.css */
+.action-btn {
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: bold;
+}
+.action-btn:hover { background-color: var(--accent-hover); }
+.action-btn.small { padding: 8px 16px; font-size: 0.9rem; }
+.action-btn.secondary { background-color: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); }
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.overlay.hidden { display: none; }
+.overlay-content {
+    background: var(--panel-bg);
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid var(--accent-color);
+}
+.overlay-content h2 { font-size: 2.5rem; margin-bottom: 20px; color: #ef4444; }

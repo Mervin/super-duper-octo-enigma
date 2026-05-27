@@ -1,0 +1,149 @@
+.game-container {
+    width: 100%;
+    max-width: 1200px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: relative;
+    height: 800px;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.divider {
+    color: #475569;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+.action-btn {
+    background-color: #334155;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    font-weight: bold;
+}
+.action-btn:hover { background-color: #475569; }
+.action-btn:active { transform: scale(0.95); }
+.action-btn.small { padding: 8px 12px; font-size: 0.9rem; }
+.action-btn.secondary { background-color: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); }
+.action-btn.secondary:hover { background-color: rgba(56, 189, 248, 0.1); }
+
+/* Active tool state */
+.action-btn.active {
+    background-color: var(--accent-color);
+    color: #000;
+    box-shadow: 0 0 10px var(--accent-color);
+}
+.action-btn.active.secondary {
+    background-color: var(--accent-color);
+    color: #000;
+}
+.action-btn.active.danger-btn {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+    box-shadow: 0 0 10px #ef4444;
+}
+
+.play-btn { background-color: #22c55e; }
+.play-btn:hover { background-color: #16a34a; }
+.stop-btn { background-color: #ef4444; }
+.stop-btn:hover { background-color: #dc2626; }
+.danger-btn { border-color: #ef4444; color: #ef4444; }
+
+.share-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(34, 197, 94, 0.2);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #22c55e;
+}
+#share-link {
+    flex: 1;
+    background: #0b0f19;
+    color: #fff;
+    border: 1px solid #475569;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.canvas-wrapper {
+    position: relative;
+    flex: 1;
+    background: #0b0f19;
+    border: 2px solid #334155;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#render-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+#render-container canvas {
+    /* Matter.js will inject canvas here */
+    display: block;
+}
+
+#draw-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10; /* Above matter.js canvas when active */
+    cursor: crosshair;
+}
+#draw-canvas.disabled {
+    pointer-events: none; /* Let clicks pass through to Matter.js canvas when playing */
+}
+
+.hidden { display: none !important; }
+
+/* Overlay */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.overlay-content {
+    background: var(--panel-bg);
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid var(--accent-color);
+}
+.overlay-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #4ade80;
+}
