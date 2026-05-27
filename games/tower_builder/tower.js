@@ -465,31 +465,30 @@ function takeDamage(amt) {
 // Main Loop
 function update(dt) {
     if (gameState.gameOver) return;
+    if (!gameState.grid || gameState.grid.length === 0) return;
 
     // Wave Management (only if game has started properly)
-    if (gameState.grid && gameState.grid.length > 0) {
-        if (gameState.waveActive) {
-            if (gameState.enemiesToSpawn > 0) {
-                gameState.enemySpawnTimer -= dt;
-                if (gameState.enemySpawnTimer <= 0) {
-                    spawnEnemy();
-                    gameState.enemiesToSpawn--;
-                    gameState.enemySpawnTimer = 1.0 - Math.min(0.8, gameState.wave * 0.05); // faster spawn
-                }
-            } else if (gameState.enemies.length === 0) {
-                // Wave Complete
-                gameState.waveActive = false;
-                gameState.wave++;
-                gameState.waveDelayTimer = 5.0; // 5 sec between waves
-                // Increase shop cost slightly every few waves
-                if (gameState.wave % 3 === 0) gameState.shopCost += 5;
-                updateUI();
+    if (gameState.waveActive) {
+        if (gameState.enemiesToSpawn > 0) {
+            gameState.enemySpawnTimer -= dt;
+            if (gameState.enemySpawnTimer <= 0) {
+                spawnEnemy();
+                gameState.enemiesToSpawn--;
+                gameState.enemySpawnTimer = 1.0 - Math.min(0.8, gameState.wave * 0.05); // faster spawn
             }
-        } else {
-            gameState.waveDelayTimer -= dt;
-            if (gameState.waveDelayTimer <= 0) {
-                startWave();
-            }
+        } else if (gameState.enemies.length === 0) {
+            // Wave Complete
+            gameState.waveActive = false;
+            gameState.wave++;
+            gameState.waveDelayTimer = 5.0; // 5 sec between waves
+            // Increase shop cost slightly every few waves
+            if (gameState.wave % 3 === 0) gameState.shopCost += 5;
+            updateUI();
+        }
+    } else {
+        gameState.waveDelayTimer -= dt;
+        if (gameState.waveDelayTimer <= 0) {
+            startWave();
         }
     }
 
@@ -683,6 +682,8 @@ function draw() {
     for (let i = 0; i <= canvas.height; i += CELL_SIZE) {
         ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
     }
+
+    if (!gameState.grid || gameState.grid.length === 0) return;
 
     // Draw Placed Blocks
     for (let x = 0; x < GRID_W; x++) {
