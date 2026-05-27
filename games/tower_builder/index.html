@@ -11,28 +11,52 @@
     <header>
         <a href="../../index.html" class="back-link">← Back to Hub</a>
         <h1 data-i18n="tower_title">Tower Builder</h1>
-        <div class="stats-bar">
+        <div class="stats-bar" id="game-stats-bar" style="display: none;">
             <div>Base HP: <span id="base-hp">100</span>/100</div>
             <div>Wave: <span id="wave-num">1</span></div>
             <div>Materials: <span id="materials-count">0</span></div>
-            <div>Coins: <span id="coins-count">0</span></div>
+            <div>Run Coins: <span id="coins-count">0</span></div>
+        </div>
+        <div class="stats-bar" id="menu-stats-bar">
+            <div>Coins: <span id="persistent-coins-count">0</span></div>
         </div>
     </header>
 
-    <main class="game-container">
+    <!-- Main Menu Screen -->
+    <main class="game-container screen" id="main-menu-screen">
+        <div class="center-panel" style="justify-content: center; align-items: center; text-align: center;">
+            <h2>Welcome to Tower Builder</h2>
+            <p>Defend your base by building towers from tetromino shapes!</p>
+            <div style="margin-top: 30px; display: flex; gap: 20px; justify-content: center;">
+                <button id="btn-start-run" class="action-btn">Start Run</button>
+                <button id="btn-open-talents" class="action-btn secondary">Talents</button>
+            </div>
+        </div>
+    </main>
 
+    <!-- Talents Screen -->
+    <main class="game-container screen hidden" id="talents-screen">
+        <div class="center-panel">
+            <h2>Talents Tree</h2>
+            <p>Coins: <span id="talents-coins-display">0</span></p>
+
+            <div class="talents-grid" id="talents-grid">
+                <!-- Talents injected here -->
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button id="btn-close-talents" class="action-btn secondary">Back to Menu</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Game Screen -->
+    <main class="game-container screen hidden" id="game-screen">
         <div class="left-panel">
             <h3>Shop (Cost: <span id="shop-cost">10</span> Mat)</h3>
             <div id="shop-blocks" class="shop-blocks">
                 <!-- 3 random blocks generated here -->
                 <div class="shop-placeholder">Defeat enemies to get materials!</div>
-            </div>
-
-            <h3 style="margin-top: 20px;">Talents</h3>
-            <div class="talents-container">
-                <button class="talent-btn" id="btn-upg-dmg">Dmg +1 <br>(<span id="cost-dmg">10</span>c)</button>
-                <button class="talent-btn" id="btn-upg-speed">Speed +10% <br>(<span id="cost-speed">15</span>c)</button>
-                <button class="talent-btn" id="btn-upg-hp">Base HP +20 <br>(<span id="cost-hp">20</span>c)</button>
             </div>
         </div>
 
@@ -44,11 +68,12 @@
             </div>
         </div>
 
-        <div id="game-over-screen" class="screen overlay hidden">
+        <div id="game-over-screen" class="overlay hidden">
             <div class="overlay-content">
                 <h2>Base Destroyed!</h2>
                 <p>You reached Wave <span id="final-wave">1</span></p>
-                <button id="btn-restart" class="action-btn">Restart</button>
+                <p>Coins earned: <span id="earned-coins">0</span></p>
+                <button id="btn-return-menu" class="action-btn">Return to Menu</button>
             </div>
         </div>
     </main>
