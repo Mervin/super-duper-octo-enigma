@@ -26,8 +26,42 @@
 }
 
 /* Header Adjustments */
-.back-link { position: absolute; left: 20px; top: 20px; color: var(--accent-color); text-decoration: none; }
-.status-indicator { position: absolute; right: 20px; top: 20px; color: #94a3b8; font-size: 0.9rem; }
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative; /* Overrides any previous fixed/absolute stuff if needed */
+}
+.back-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    white-space: nowrap;
+    background: rgba(0,0,0,0.2);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--accent-color);
+}
+.back-link:hover {
+    background: rgba(56, 189, 248, 0.1);
+}
+header h1 {
+    flex-grow: 1;
+    text-align: center;
+    margin: 0;
+    font-size: 2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 10px;
+}
+.status-indicator {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
 .status-indicator.connected { color: #4ade80; }
 
 /* Lobby */
@@ -43,7 +77,7 @@
     flex-direction: column;
     gap: 10px;
 }
-.toggle-btns { display: flex; gap: 10px; }
+.toggle-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .toggle-btn {
     background: #1e293b;
     color: #cbd5e1;
@@ -52,6 +86,7 @@
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 .toggle-btn.active {
     background: var(--accent-color);

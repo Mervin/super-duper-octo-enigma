@@ -6,8 +6,11 @@ const lobbyScreen = document.getElementById('lobby-screen');
 const gameScreen = document.getElementById('game-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 
+const btnWin3 = document.getElementById('btn-win-3');
 const btnWin4 = document.getElementById('btn-win-4');
 const btnWin5 = document.getElementById('btn-win-5');
+const btnWinCustom = document.getElementById('btn-win-custom');
+const inputWinCustom = document.getElementById('input-win-custom');
 const btnPlayHotseat = document.getElementById('btn-play-hotseat');
 const btnPlayAI = document.getElementById('btn-play-ai');
 const btnCreateRoom = document.getElementById('btn-create-room');
@@ -54,8 +57,17 @@ function init() {
     window.addEventListener('resize', resizeCanvas);
 
     // Toggle Win Cond
+    btnWin3.addEventListener('click', () => setWinCond(3));
     btnWin4.addEventListener('click', () => setWinCond(4));
     btnWin5.addEventListener('click', () => setWinCond(5));
+    btnWinCustom.addEventListener('click', () => setWinCond('custom'));
+
+    inputWinCustom.addEventListener('change', () => {
+        let val = parseInt(inputWinCustom.value);
+        if (isNaN(val) || val < 3) val = 3;
+        inputWinCustom.value = val;
+        winCondition = val;
+    });
 
     // Modes
     btnPlayHotseat.addEventListener('click', () => startGame('hotseat'));
@@ -80,9 +92,18 @@ function init() {
 }
 
 function setWinCond(val) {
-    winCondition = val;
+    if (val === 'custom') {
+        winCondition = parseInt(inputWinCustom.value) || 6;
+        inputWinCustom.classList.remove('hidden');
+    } else {
+        winCondition = val;
+        inputWinCustom.classList.add('hidden');
+    }
+
+    btnWin3.classList.toggle('active', val === 3);
     btnWin4.classList.toggle('active', val === 4);
     btnWin5.classList.toggle('active', val === 5);
+    btnWinCustom.classList.toggle('active', val === 'custom');
 }
 
 function resizeCanvas() {
