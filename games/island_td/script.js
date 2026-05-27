@@ -23,7 +23,7 @@ updateTranslations();
 const HEX_SIZE = 18;
 const HEX_W = Math.sqrt(3) * HEX_SIZE;
 const HEX_H = 2 * HEX_SIZE;
-const MAP_RADIUS = 9;
+let mapRadius = 9;
 
 // Flat-topped hex to pixel
 function hexToPixel(q, r) {
@@ -108,9 +108,9 @@ function initGrid() {
     state.projectiles = [];
     state.selectedTile = null;
 
-    for (let q = -MAP_RADIUS; q <= MAP_RADIUS; q++) {
-        for (let r = -MAP_RADIUS; r <= MAP_RADIUS; r++) {
-            if (hexDistance(0, 0, q, r) <= MAP_RADIUS) {
+    for (let q = -mapRadius; q <= mapRadius; q++) {
+        for (let r = -mapRadius; r <= mapRadius; r++) {
+            if (hexDistance(0, 0, q, r) <= mapRadius) {
                 let type = 'fog';
                 if (q === 0 && r === 0) type = 'base';
 
@@ -152,16 +152,6 @@ function updateUI() {
         let infoKey = t.type + 'Info';
         let text = TRANSLATIONS[lang][infoKey] || t.type;
 
-        if (t.type === 'fog') {
-            let diff = "Safe";
-            if (t.hiddenType === 'spawn') diff = "High Danger!";
-            else if (t.hiddenType === 'treasure') diff = "Treasure Detected";
-            text += ` (Preview: ${diff})`;
-        }
-
-        tileInfo.textContent = text;
-
-
         let hasRevealedNeighbor = false;
         let neighbors = getNeighbors(t.q, t.r);
         for (let n of neighbors) {
@@ -171,6 +161,15 @@ function updateUI() {
                 break;
             }
         }
+
+        if (t.type === 'fog' && hasRevealedNeighbor) {
+            let diff = "Safe";
+            if (t.hiddenType === 'spawn') diff = "High Danger!";
+            else if (t.hiddenType === 'treasure') diff = "Treasure Detected";
+            text += ` (Preview: ${diff})`;
+        }
+
+        tileInfo.textContent = text;
 
         btnDig.disabled = t.type !== 'fog' || state.gold < 10 || !hasRevealedNeighbor;
         btnBuild.disabled = t.type !== 'grass' || state.gold < 20 || !!state.towers.find(tw => tw.r === t.r && tw.c === t.c);
@@ -293,7 +292,11 @@ let spawnTimer = 0;
 
 btnStart.onclick = () => {
     state.wave++;
-    enemiesToSpawn = state.wave * 5;
+    if (state.wave % 10 === 0) {
+        enemiesToSpawn = 1; // Boss wave
+    } else {
+        enemiesToSpawn = state.wave * 5;
+    }
     state.waveActive = true;
     updateUI();
 };
@@ -326,9 +329,27 @@ function draw() {
         let p = hexToPixel(tile.q, tile.r);
 
         let color = '#333';
-        if (tile.type === 'grass') color = '#4caf50';
-        if (tile.type === 'base') color = '#2196f3';
-        if (tile.type === 'spawn') color = '#f44336';
+        let isAdjacentFog = false;
+
+        if (tile.type === 'fog') {
+            let neighbors = getNeighbors(tile.q, tile.r);
+            for (let n of neighbors) {
+                let key = n.q + "," + n.r;
+                if (gridMap.has(key) && gridMap.get(key).type !== 'fog') {
+                    isAdjacentFog = true;
+                    break;
+                }
+            }
+            if (isAdjacentFog) {
+                color = '#555';
+            }
+        } else if (tile.type === 'grass') {
+            color = '#4caf50';
+        } else if (tile.type === 'base') {
+            color = '#2196f3';
+        } else if (tile.type === 'spawn') {
+            color = '#f44336';
+        }
 
         let outline = 'rgba(0,0,0,0.2)';
         if (state.selectedTile === tile) outline = 'yellow';
@@ -353,6 +374,16 @@ function draw() {
             ctx.textBaseline = 'middle';
             ctx.font = '12px monospace';
             ctx.fillText('S', p.x, p.y);
+        } else if (tile.type === 'fog' && isAdjacentFog) {
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = '12px sans-serif';
+            if (tile.hiddenType === 'spawn') {
+                ctx.fillText('💀', p.x, p.y);
+            } else if (tile.hiddenType === 'treasure') {
+                ctx.fillText('💰', p.x, p.y);
+            }
         }
     }
 
@@ -368,9 +399,10 @@ function draw() {
     });
 
     state.enemies.forEach(e => {
+        let size = e.isBoss ? 12 : 8;
         ctx.beginPath();
-        ctx.arc(e.x, e.y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = 'red';
+        ctx.arc(e.x, e.y, size, 0, Math.PI * 2);
+        ctx.fillStyle = e.isBoss ? 'purple' : 'red';
         ctx.fill();
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
@@ -399,13 +431,32 @@ function loop() {
     if (state.waveActive) {
         if (enemiesToSpawn > 0 && spawnTimer <= 0) {
             let spawnTile = state.spawnTiles[Math.floor(Math.random()*state.spawnTiles.length)];
+
+            // If it's a boss wave, try to find a spawn tile further from the base
+            if (state.wave % 10 === 0) {
+                let sortedSpawns = [...state.spawnTiles].sort((a, b) => {
+                    let dA = hexDistance(a.q, a.r, state.baseTile.q, state.baseTile.r);
+                    let dB = hexDistance(b.q, b.r, state.baseTile.q, state.baseTile.r);
+                    return dB - dA; // Descending
+                });
+                if (sortedSpawns.length > 0) {
+                    spawnTile = sortedSpawns[0];
+                }
+            }
+
             let p = hexToPixel(spawnTile.q, spawnTile.r);
+
+            let isBoss = (state.wave % 10 === 0);
+            let baseHp = state.wave === 1 ? 5 : 10 * Math.pow(1.2, state.wave);
+            let finalHp = isBoss ? baseHp * 10 : baseHp;
+
             let enemy = {
                 q: spawnTile.q, r: spawnTile.r,
                 x: p.x, y: p.y,
-                hp: 10 * Math.pow(1.2, state.wave),
-                maxHp: 10 * Math.pow(1.2, state.wave),
-                speed: 1
+                hp: finalHp,
+                maxHp: finalHp,
+                speed: isBoss ? 0.5 : 1,
+                isBoss: isBoss
             };
             state.enemies.push(enemy);
             enemiesToSpawn--;
@@ -471,7 +522,15 @@ function loop() {
             if (dist < 5) {
                 p.target.hp -= p.dmg;
                 if (p.target.hp <= 0) {
-                    state.gold += 2;
+                    if (p.target.isBoss) {
+                        state.gold += 50;
+                        state.relics += 1;
+                        localStorage.setItem('hub_td_relics', state.relics);
+                        expandMap();
+                        alert("Boss Defeated! The map has expanded.");
+                    } else {
+                        state.gold += 2;
+                    }
                     state.enemies.splice(state.enemies.indexOf(p.target), 1);
                     updateUI();
                 }
@@ -521,3 +580,21 @@ canvas.addEventListener('click', (e) => {
             selectTile(hex.q, hex.r);
         }
     });
+
+function expandMap() {
+    mapRadius++;
+    for (let q = -mapRadius; q <= mapRadius; q++) {
+        for (let r = -mapRadius; r <= mapRadius; r++) {
+            let key = q + "," + r;
+            if (hexDistance(0, 0, q, r) === mapRadius && !gridMap.has(key)) {
+                let hiddenType = 'grass';
+                let rand = Math.random();
+                if (rand < 0.1) hiddenType = 'spawn';
+                else if (rand < 0.2) hiddenType = 'treasure';
+
+                let tile = { q, r, type: 'fog', hiddenType };
+                gridMap.set(key, tile);
+            }
+        }
+    }
+}
