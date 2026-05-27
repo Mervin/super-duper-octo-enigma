@@ -120,6 +120,7 @@ function renderAll() {
         }
     }
     setupDragAndDrop();
+    setupClickToMove();
     checkCompletions();
 }
 
@@ -238,6 +239,60 @@ function isValidMove(cards, targetIdx) {
     if (pile.length === 0) return true;
     let topPileCard = pile[pile.length-1];
     return cards[0].numValue === topPileCard.numValue - 1;
+}
+
+// Click to Move
+function setupClickToMove() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        if (card.draggable) {
+            card.addEventListener('click', handleCardClick);
+        }
+    });
+}
+
+function handleCardClick(e) {
+    if (draggedCards.length > 0) return;
+
+    const el = e.currentTarget;
+    const parent = el.parentElement;
+    let clickSourceIdx = null;
+    let clickCards = [];
+
+    if (parent.id.startsWith('t')) {
+        clickSourceIdx = parseInt(parent.id.slice(1));
+        const cardIdx = parseInt(el.dataset.cardIdx);
+
+        if (isDraggableSequence(state.tableaus[clickSourceIdx], cardIdx)) {
+            clickCards = state.tableaus[clickSourceIdx].slice(cardIdx);
+        } else {
+            return;
+        }
+    } else {
+        return;
+    }
+
+    if (clickCards.length === 0) return;
+
+    // Try tableaus (only to empty or valid numbered piles)
+    for (let i = 0; i < 10; i++) {
+        if (clickSourceIdx === i) continue;
+        if (isValidMove(clickCards, i)) {
+            moveCards(clickCards, clickSourceIdx, i);
+            return;
+        }
+    }
+}
+
+function moveCards(cards, sIdx, tIdx) {
+    state.tableaus[sIdx].splice(-cards.length);
+    state.tableaus[tIdx].push(...cards);
+
+    if (state.tableaus[sIdx].length > 0) {
+        state.tableaus[sIdx][state.tableaus[sIdx].length-1].faceUp = true;
+    }
+
+    renderAll();
 }
 
 function checkCompletions() {

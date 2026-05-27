@@ -64,7 +64,15 @@ function initGrid() {
             if (r === br && c === bc) type = 'base';
             else if (Math.abs(r-br) <= 1 && Math.abs(c-bc) <= 1) type = 'grass';
 
-            let tile = { r, c, type, el: document.createElement('div') };
+            let hiddenType = 'grass';
+            if (type === 'fog') {
+                let rand = Math.random();
+                if (rand < 0.1) hiddenType = 'spawn';
+                else if (rand < 0.2) hiddenType = 'treasure';
+                else if (rand < 0.6) hiddenType = 'path';
+            }
+
+            let tile = { r, c, type, hiddenType, el: document.createElement('div') };
             tile.el.className = `tile ${type}`;
             if (type === 'base') tile.el.textContent = 'B';
 
@@ -87,7 +95,16 @@ function updateUI() {
     if (state.selectedTile) {
         const t = state.selectedTile;
         let infoKey = t.type + 'Info';
-        tileInfo.textContent = TRANSLATIONS[lang][infoKey] || t.type;
+        let text = TRANSLATIONS[lang][infoKey] || t.type;
+
+        if (t.type === 'fog') {
+            let diff = "Safe";
+            if (t.hiddenType === 'spawn') diff = "High Danger!";
+            else if (t.hiddenType === 'treasure') diff = "Treasure Detected";
+            text += ` (Preview: ${diff})`;
+        }
+
+        tileInfo.textContent = text;
 
         btnDig.disabled = t.type !== 'fog' || state.gold < 10;
         btnBuild.disabled = t.type !== 'grass' || state.gold < 20 || !!state.towers.find(tw => tw.r === t.r && tw.c === t.c);
@@ -110,15 +127,15 @@ function selectTile(r, c) {
 btnDig.onclick = () => {
     if (state.selectedTile && state.selectedTile.type === 'fog' && state.gold >= 10) {
         state.gold -= 10;
-        let r = Math.random();
-        if (r < 0.1) {
+        let ht = state.selectedTile.hiddenType;
+        if (ht === 'spawn') {
             state.selectedTile.type = 'spawn';
             state.selectedTile.el.textContent = 'S';
             state.spawnTiles.push(state.selectedTile);
-        } else if (r < 0.2) {
+        } else if (ht === 'treasure') {
             state.gold += 25; // Treasure
             state.selectedTile.type = 'grass';
-        } else if (r < 0.6) {
+        } else if (ht === 'path') {
             state.selectedTile.type = 'path';
             state.pathTiles.push(state.selectedTile);
         } else {

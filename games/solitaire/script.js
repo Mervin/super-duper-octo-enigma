@@ -111,6 +111,7 @@ function renderAll() {
         }
     }
     setupDragAndDrop();
+    setupClickToMove();
 }
 
 function createCardEl(card) {
@@ -251,6 +252,79 @@ function isValidMove(cards, targetType, targetIdx) {
         return topMovingCard.color !== topPileCard.color && topMovingCard.numValue === topPileCard.numValue - 1;
     }
     return false;
+}
+
+// Click to Move
+function setupClickToMove() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        if (card.draggable) {
+            card.addEventListener('click', handleCardClick);
+        }
+    });
+}
+
+function handleCardClick(e) {
+    if (draggedCards.length > 0) return; // Ignore if dragging
+
+    const el = e.currentTarget;
+    const parent = el.parentElement;
+    let clickSourceType = null;
+    let clickSourceIdx = null;
+    let clickCards = [];
+
+    if (parent.id === 'waste') {
+        clickSourceType = 'waste';
+        clickCards = [state.waste[state.waste.length-1]];
+    } else if (parent.id.startsWith('f')) {
+        // Can't click move from foundation for now
+        return;
+    } else if (parent.id.startsWith('t')) {
+        clickSourceType = 'tableau';
+        clickSourceIdx = parseInt(parent.id[1]);
+        const cardIdx = parseInt(el.dataset.cardIdx);
+        clickCards = state.tableaus[clickSourceIdx].slice(cardIdx);
+    }
+
+    if (clickCards.length === 0) return;
+
+    // Try foundations first (if only one card)
+    if (clickCards.length === 1) {
+        for (let i = 0; i < 4; i++) {
+            if (isValidMove(clickCards, 'foundation', i)) {
+                moveCards(clickCards, clickSourceType, clickSourceIdx, 'foundation', i);
+                return;
+            }
+        }
+    }
+
+    // Try tableaus
+    for (let i = 0; i < 7; i++) {
+        if (clickSourceType === 'tableau' && clickSourceIdx === i) continue; // Don't move to same pile
+        if (isValidMove(clickCards, 'tableau', i)) {
+            moveCards(clickCards, clickSourceType, clickSourceIdx, 'tableau', i);
+            return;
+        }
+    }
+}
+
+function moveCards(cards, sType, sIdx, tType, tIdx) {
+    // Move cards in state
+    if (sType === 'waste') state.waste.pop();
+    else if (sType === 'tableau') state.tableaus[sIdx].splice(-cards.length);
+
+    if (tType === 'foundation') {
+        state.foundations[tIdx].push(cards[0]);
+    } else if (tType === 'tableau') {
+        state.tableaus[tIdx].push(...cards);
+    }
+
+    // Auto-reveal tableau card
+    if (sType === 'tableau' && state.tableaus[sIdx].length > 0) {
+        state.tableaus[sIdx][state.tableaus[sIdx].length-1].faceUp = true;
+    }
+
+    renderAll();
 }
 
 initGame();
