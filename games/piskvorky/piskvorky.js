@@ -111,6 +111,9 @@ function startGame(selectedMode) {
     lobbyScreen.classList.remove('active');
     gameScreen.classList.add('active');
 
+    // Resize canvas now that the container is visible
+    resizeCanvas();
+
     board.clear();
     currentTurn = 'X';
     gameOver = false;
@@ -120,13 +123,13 @@ function startGame(selectedMode) {
     updateUI();
 }
 
-function makeMove(gx, gy) {
+function makeMove(gx, gy, isAiMove = false) {
     if (gameOver) return;
     const key = `${gx},${gy}`;
     if (board.has(key)) return;
 
     // Check turn validity for MP/AI
-    if (mode === 'ai' && currentTurn === 'O') return; // AI's turn
+    if (mode === 'ai' && currentTurn === 'O' && !isAiMove) return; // Wait for AI
     if (mode === 'mp') {
         const mySymbol = isHost ? 'X' : 'O';
         if (currentTurn !== mySymbol) return;
@@ -260,7 +263,7 @@ function aiMove() {
     }
 
     if (candidates.size === 0) {
-        makeMove(0, 0); // First move if board empty somehow
+        makeMove(0, 0, true); // First move if board empty somehow
         return;
     }
 
@@ -283,7 +286,7 @@ function aiMove() {
 
     // Pick random from best
     const move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
-    makeMove(move.x, move.y);
+    makeMove(move.x, move.y, true);
 }
 
 function evaluatePos(cx, cy, player) {
@@ -536,16 +539,31 @@ function render() {
     }
 
     // Draw Marks
-    ctx.font = '24px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
     for (let [key, player] of board.entries()) {
         const [x, y] = key.split(',').map(Number);
         const s = gridToScreen(x, y);
 
-        ctx.fillStyle = player === 'X' ? '#ef4444' : '#38bdf8';
-        ctx.fillText(player === 'X' ? '❌' : '⭕', s.x + CELL_SIZE/2, s.y + CELL_SIZE/2 + 2);
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+
+        const cx = s.x + CELL_SIZE / 2;
+        const cy = s.y + CELL_SIZE / 2;
+        const padding = 10;
+
+        if (player === 'X') {
+            ctx.strokeStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.moveTo(s.x + padding, s.y + padding);
+            ctx.lineTo(s.x + CELL_SIZE - padding, s.y + CELL_SIZE - padding);
+            ctx.moveTo(s.x + CELL_SIZE - padding, s.y + padding);
+            ctx.lineTo(s.x + padding, s.y + CELL_SIZE - padding);
+            ctx.stroke();
+        } else {
+            ctx.strokeStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.arc(cx, cy, (CELL_SIZE / 2) - padding, 0, Math.PI * 2);
+            ctx.stroke();
+        }
     }
 
     // Draw Winning Line
