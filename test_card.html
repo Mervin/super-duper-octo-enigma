@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body { background: #333; padding: 50px; }
+.card { width: 100px; height: 140px; background-color: white; border: 1px solid #333; border-radius: 5px; position: relative; font-size: 1.5rem; font-weight: bold; cursor: grab; user-select: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
+.card-content { position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 4px; box-sizing: border-box; }
+.card-corner { font-size: 1.2rem; line-height: 1; text-align: center; width: 1.5rem; }
+.card-corner.bottom { transform: rotate(180deg); align-self: flex-end; }
+.card-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; align-content: center; width: 60%; height: 75%; border: 1px solid red; }
+.card-center.ace { font-size: 3rem; }
+.card-center.face { font-size: 2.5rem; }
+.card-center.symbols { font-size: 1.2rem; line-height: 1; position: relative; width: 100%; height: 100%; display: block; }
+.sym { position: absolute; text-align: center; width: 1.2rem; line-height: 1.2rem; margin-top: -0.6rem; margin-left: -0.6rem; }
+.sym.flipped { transform: rotate(180deg); }
+.red { color: red; }
+.black { color: black; }
+</style>
+</head>
+<body>
+
+<div class="card black">
+    <div class="card-content">
+        <div class="card-corner top">
+            <div>10</div>
+            <div>♠</div>
+        </div>
+        <div class="card-center">
+            <div class="card-center symbols">
+                <div class="sym " style="left: 25%; top: 15%;">♠</div>
+                <div class="sym " style="left: 75%; top: 15%;">♠</div>
+                <div class="sym " style="left: 50%; top: 26%;">♠</div>
+                <div class="sym " style="left: 25%; top: 38%;">♠</div>
+                <div class="sym " style="left: 75%; top: 38%;">♠</div>
+                <div class="sym flipped" style="left: 25%; top: 62%;">♠</div>
+                <div class="sym flipped" style="left: 75%; top: 62%;">♠</div>
+                <div class="sym flipped" style="left: 50%; top: 74%;">♠</div>
+                <div class="sym flipped" style="left: 25%; top: 85%;">♠</div>
+                <div class="sym flipped" style="left: 75%; top: 85%;">♠</div>
+            </div>
+        </div>
+        <div class="card-corner bottom">
+            <div>10</div>
+            <div>♠</div>
+        </div>
+    </div>
+</div>
+
+<div class="card red" style="margin-top: 20px;">
+    <div class="card-content">
+        <div class="card-corner top">
+            <div>8</div>
+            <div>♥</div>
+        </div>
+        <div class="card-center">
+            <div class="card-center symbols">
+                <div class="sym" style="left: 25%; top: 15%;">♥</div>
+                <div class="sym" style="left: 75%; top: 15%;">♥</div>
+                <div class="sym" style="left: 50%; top: 32.5%;">♥</div>
+                <div class="sym" style="left: 25%; top: 50%;">♥</div>
+                <div class="sym" style="left: 75%; top: 50%;">♥</div>
+                <div class="sym flipped" style="left: 50%; top: 67.5%;">♥</div>
+                <div class="sym flipped" style="left: 25%; top: 85%;">♥</div>
+                <div class="sym flipped" style="left: 75%; top: 85%;">♥</div>
+            </div>
+        </div>
+        <div class="card-corner bottom">
+            <div>8</div>
+            <div>♥</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

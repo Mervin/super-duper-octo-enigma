@@ -170,7 +170,7 @@ function createCardEl(card) {
                 symbols += `<div class="sym ${flipClass}" style="left: ${pos[0]}%; top: ${pos[1]}%;">${card.suit}</div>`;
             }
 
-            centerContent = `<div class="card-center symbols">${symbols}</div>`;
+            centerContent = `<div class="card-center"><div class="card-center-symbols">${symbols}</div></div>`;
         }
 
         el.innerHTML = `
@@ -510,6 +510,7 @@ function animationLoop() {
 let fwCanvas, fwCtx, particles = [];
 let fireworkIntervalId = null;
 let fwAnimationFrameId = null;
+let fwResizeListenerAttached = false;
 
 function startFireworks() {
     fwCanvas = document.getElementById('fireworks-canvas');
@@ -521,12 +522,15 @@ function startFireworks() {
     // Clear particles on start
     particles = [];
 
-    window.addEventListener('resize', () => {
-        if(fwCanvas) {
-            fwCanvas.width = window.innerWidth;
-            fwCanvas.height = window.innerHeight;
-        }
-    });
+    if (!fwResizeListenerAttached) {
+        window.addEventListener('resize', () => {
+            if(fwCanvas) {
+                fwCanvas.width = window.innerWidth;
+                fwCanvas.height = window.innerHeight;
+            }
+        });
+        fwResizeListenerAttached = true;
+    }
 
     fireworksLoop();
     fireworkIntervalId = setInterval(createFirework, 800);
