@@ -84,17 +84,25 @@
                     <h3>Experiment Lab</h3>
                     <p>Select elements to combine and experiment. If they form a valid molecule, you discover its recipe! (Incorrect guesses consume the elements).</p>
                     <div id="experiment-ui" class="experiment-grid">
-                        <select id="exp-element-1"></select>
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="action-btn element-select-btn" id="btn-select-exp-1" data-slot="1" style="width: auto; margin-bottom: 0;">Select Element</button>
+                            <button class="action-btn element-clear-btn" data-slot="1" style="width: auto; margin-bottom: 0; padding: 5px; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); border-color: var(--danger-color); color: var(--danger-color);">Clear</button>
+                        </div>
+                        <input type="hidden" id="exp-element-1" value="0">
                         <input type="number" id="exp-qty-1" value="1" min="1" max="99">
                         <span>+</span>
-                        <select id="exp-element-2">
-                            <option value="0">None</option>
-                        </select>
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="action-btn element-select-btn" id="btn-select-exp-2" data-slot="2" style="width: auto; margin-bottom: 0;">None</button>
+                            <button class="action-btn element-clear-btn" data-slot="2" style="width: auto; margin-bottom: 0; padding: 5px; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); border-color: var(--danger-color); color: var(--danger-color);">Clear</button>
+                        </div>
+                        <input type="hidden" id="exp-element-2" value="0">
                         <input type="number" id="exp-qty-2" value="1" min="1" max="99">
                         <span>+</span>
-                        <select id="exp-element-3">
-                            <option value="0">None</option>
-                        </select>
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="action-btn element-select-btn" id="btn-select-exp-3" data-slot="3" style="width: auto; margin-bottom: 0;">None</button>
+                            <button class="action-btn element-clear-btn" data-slot="3" style="width: auto; margin-bottom: 0; padding: 5px; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); border-color: var(--danger-color); color: var(--danger-color);">Clear</button>
+                        </div>
+                        <input type="hidden" id="exp-element-3" value="0">
                         <input type="number" id="exp-qty-3" value="1" min="1" max="99">
                     </div>
                     <button id="btn-experiment" class="action-btn main-btn" style="margin-top: 10px;">Experiment!</button>
@@ -112,7 +120,16 @@
 
                 <hr style="border: 1px solid #334155; margin: 20px 0;">
 
-                <h3>Known Molecules</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <h3>Known Molecules</h3>
+                    <div id="molecule-buy-amount-controls" style="display: flex; gap: 5px;">
+                        <span style="display: flex; align-items: center; margin-right: 10px;">Craft Amount:</span>
+                        <button class="buy-amt-btn active" data-amt="1">x1</button>
+                        <button class="buy-amt-btn" data-amt="10">x10</button>
+                        <button class="buy-amt-btn" data-amt="25">x25</button>
+                        <button class="buy-amt-btn" data-amt="max">Max</button>
+                    </div>
+                </div>
                 <div class="molecules-list" id="molecules-container">
                     <!-- Molecule craft buttons will be generated here -->
                 </div>
@@ -167,6 +184,36 @@
                     <button id="btn-import" class="action-btn" style="width: 200px;" data-i18n="importSave">Import Save</button>
                     <button id="btn-toggle-lang" class="action-btn" style="width: 200px; border-color: #f59e0b; color: #f59e0b;">EN / CZ</button>
                     <button id="btn-hard-reset" class="action-btn prestige-btn" style="width: 200px;" data-i18n="wipeSave">Wipe Save</button>
+                </div>
+
+                <hr style="border: 1px solid #334155; margin: 30px 0; width: 100%;">
+
+                <h3>Statistics</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; width: 100%; max-width: 600px; align-self: center;">
+                    <div class="resource-box">
+                        <h4 style="color: #94a3b8;">Time Played</h4>
+                        <div class="amount" id="stat-time-played" style="font-size: 1.5rem;">0s</div>
+                    </div>
+                    <div class="resource-box">
+                        <h4 style="color: #94a3b8;">Total Quarks Gathered</h4>
+                        <div class="amount" id="stat-total-quarks" style="font-size: 1.5rem;">0</div>
+                    </div>
+                    <div class="resource-box">
+                        <h4 style="color: #94a3b8;">Total Weight Produced</h4>
+                        <div class="amount" id="stat-total-weight" style="font-size: 1.5rem;">0</div>
+                    </div>
+                    <div class="resource-box">
+                        <h4 style="color: #94a3b8;">Cosmic Resets</h4>
+                        <div class="amount" id="stat-prestige-count" style="font-size: 1.5rem;">0</div>
+                    </div>
+                    <div class="resource-box">
+                        <h4 style="color: #94a3b8;">Elements Discovered</h4>
+                        <div class="amount" id="stat-elements-discovered" style="font-size: 1.5rem;">0</div>
+                    </div>
+                    <div class="resource-box">
+                        <h4 style="color: #94a3b8;">Molecules Discovered</h4>
+                        <div class="amount" id="stat-molecules-discovered" style="font-size: 1.5rem;">0</div>
+                    </div>
                 </div>
             </div>
         </main>

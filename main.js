@@ -16,12 +16,20 @@ const DEFAULT_STATE = {
     elements: {}, // Populated dynamically
     molecules: {}, // Populated dynamically
     discoveredMolecules: {}, // Populated dynamically, true if discovered
+    unlockedMoleculeAutobuyers: {}, // true if autobuyer is unlocked for mol.id
+    moleculeAutobuyersActive: {}, // true if autobuyer is toggled ON for mol.id
+    totalMoleculeAutobuyersUnlocked: 0,
     researchEndTime: 0, // When current research finishes
     prestigeCount: 0, // Number of times prestiged
     monomers: {}, // Monomer amounts
     discoveredMonomers: {}, // Monomer discovery tracking
     polymers: {}, // Polymer lengths
-    lastSaveTime: Date.now()
+    lastSaveTime: Date.now(),
+    stats: {
+        timePlayedSeconds: 0,
+        totalQuarksEver: 0,
+        totalWeightProduced: 0
+    }
 };
 
 // Define Monomers and Polymers structure
@@ -59,6 +67,8 @@ DEFAULT_STATE.discoveredMolecules[1] = true;
 
 let game = JSON.parse(JSON.stringify(DEFAULT_STATE));
 const SAVE_KEY = "atomicIdleSave";
+
+let globalCraftAmount = 1; // can be 1, 10, 25, or 'max'
 
 // Translations
 const TRANSLATIONS = {
@@ -222,6 +232,11 @@ function loadGame() {
             if (typeof game.discoveredMonomers === "undefined") game.discoveredMonomers = { ...DEFAULT_STATE.discoveredMonomers };
             if (typeof game.polymers === "undefined") game.polymers = { ...DEFAULT_STATE.polymers };
 
+            if (typeof game.unlockedMoleculeAutobuyers === "undefined") game.unlockedMoleculeAutobuyers = {};
+            if (typeof game.moleculeAutobuyersActive === "undefined") game.moleculeAutobuyersActive = {};
+            if (typeof game.totalMoleculeAutobuyersUnlocked === "undefined") game.totalMoleculeAutobuyersUnlocked = 0;
+            if (typeof game.stats === "undefined") game.stats = { ...DEFAULT_STATE.stats };
+
             // Retroactive fix: ensure H2 is discovered
             game.discoveredMolecules[1] = true;
             // Retroactive fix: ensure initial molecules are marked discovered if player had them before update
@@ -251,25 +266,44 @@ function resetGame() {
     }
 }
 
-function craftMolecule(molId) {
+function craftMolecule(molId, autoAmount = null) {
     const mol = MOLECULES.find(m => m.id === molId);
     if (!mol) return;
 
-    // Check requirements
-    let canCraft = true;
+    let maxPossible = Infinity;
     for (let eId in mol.reqs) {
-        if (game.elements[eId] < mol.reqs[eId]) {
-            canCraft = false;
+        const available = game.elements[eId] || 0;
+        const required = mol.reqs[eId];
+        const possibleWithThisElement = Math.floor(available / required);
+        if (possibleWithThisElement < maxPossible) {
+            maxPossible = possibleWithThisElement;
         }
     }
 
-    if (canCraft) {
+    if (maxPossible <= 0) return;
+
+    let amountToCraft = 1;
+    if (autoAmount !== null) {
+        if (autoAmount === 'max') {
+            amountToCraft = maxPossible;
+        } else {
+            amountToCraft = Math.min(autoAmount, maxPossible);
+        }
+    } else {
+        if (globalCraftAmount === 'max') {
+            amountToCraft = maxPossible;
+        } else {
+            amountToCraft = Math.min(globalCraftAmount, maxPossible);
+        }
+    }
+
+    if (amountToCraft > 0) {
         for (let eId in mol.reqs) {
-            game.elements[eId] -= mol.reqs[eId];
+            game.elements[eId] -= (mol.reqs[eId] * amountToCraft);
         }
         if (typeof game.molecules[mol.id] === 'undefined') game.molecules[mol.id] = 0;
-        game.molecules[mol.id]++;
-        updateUI();
+        game.molecules[mol.id] += amountToCraft;
+        if (autoAmount === null || autoAmount !== 'max') updateUI();
     }
 }
 
@@ -314,720 +348,1076 @@ function closeModals() {
 const ELEMENTS = [
     {
         "id": 1,
-        "name": "Hydrogen",
+        "name": {
+            "en": "Hydrogen",
+            "cz": "Vodík"
+        },
         "symbol": "H",
         "baseCost": 1
     },
     {
         "id": 2,
-        "name": "Helium",
+        "name": {
+            "en": "Helium",
+            "cz": "Helium"
+        },
         "symbol": "He",
         "mergeReq": 6
     },
     {
         "id": 3,
-        "name": "Lithium",
+        "name": {
+            "en": "Lithium",
+            "cz": "Lithium"
+        },
         "symbol": "Li",
         "mergeReq": 2
     },
     {
         "id": 4,
-        "name": "Beryllium",
+        "name": {
+            "en": "Beryllium",
+            "cz": "Beryllium"
+        },
         "symbol": "Be",
         "mergeReq": 3
     },
     {
         "id": 5,
-        "name": "Boron",
+        "name": {
+            "en": "Boron",
+            "cz": "Bór"
+        },
         "symbol": "B",
         "mergeReq": 4
     },
     {
         "id": 6,
-        "name": "Carbon",
+        "name": {
+            "en": "Carbon",
+            "cz": "Uhlík"
+        },
         "symbol": "C",
         "mergeReq": 4
     },
     {
         "id": 7,
-        "name": "Nitrogen",
+        "name": {
+            "en": "Nitrogen",
+            "cz": "Dusík"
+        },
         "symbol": "N",
         "mergeReq": 5
     },
     {
         "id": 8,
-        "name": "Oxygen",
+        "name": {
+            "en": "Oxygen",
+            "cz": "Kyslík"
+        },
         "symbol": "O",
         "mergeReq": 5
     },
     {
         "id": 9,
-        "name": "Fluorine",
+        "name": {
+            "en": "Fluorine",
+            "cz": "Fluor"
+        },
         "symbol": "F",
         "mergeReq": 5
     },
     {
         "id": 10,
-        "name": "Neon",
+        "name": {
+            "en": "Neon",
+            "cz": "Neon"
+        },
         "symbol": "Ne",
         "mergeReq": 6
     },
     {
         "id": 11,
-        "name": "Sodium",
+        "name": {
+            "en": "Sodium",
+            "cz": "Sodík"
+        },
         "symbol": "Na",
         "mergeReq": 2
     },
     {
         "id": 12,
-        "name": "Magnesium",
+        "name": {
+            "en": "Magnesium",
+            "cz": "Hořčík"
+        },
         "symbol": "Mg",
         "mergeReq": 3
     },
     {
         "id": 13,
-        "name": "Aluminum",
+        "name": {
+            "en": "Aluminum",
+            "cz": "Hliník"
+        },
         "symbol": "Al",
         "mergeReq": 3
     },
     {
         "id": 14,
-        "name": "Silicon",
+        "name": {
+            "en": "Silicon",
+            "cz": "Křemík"
+        },
         "symbol": "Si",
         "mergeReq": 4
     },
     {
         "id": 15,
-        "name": "Phosphorus",
+        "name": {
+            "en": "Phosphorus",
+            "cz": "Fosfor"
+        },
         "symbol": "P",
         "mergeReq": 5
     },
     {
         "id": 16,
-        "name": "Sulfur",
+        "name": {
+            "en": "Sulfur",
+            "cz": "Síra"
+        },
         "symbol": "S",
         "mergeReq": 5
     },
     {
         "id": 17,
-        "name": "Chlorine",
+        "name": {
+            "en": "Chlorine",
+            "cz": "Chlor"
+        },
         "symbol": "Cl",
         "mergeReq": 5
     },
     {
         "id": 18,
-        "name": "Argon",
+        "name": {
+            "en": "Argon",
+            "cz": "Argon"
+        },
         "symbol": "Ar",
         "mergeReq": 6
     },
     {
         "id": 19,
-        "name": "Potassium",
+        "name": {
+            "en": "Potassium",
+            "cz": "Draslík"
+        },
         "symbol": "K",
         "mergeReq": 2
     },
     {
         "id": 20,
-        "name": "Calcium",
+        "name": {
+            "en": "Calcium",
+            "cz": "Vápník"
+        },
         "symbol": "Ca",
         "mergeReq": 3
     },
     {
         "id": 21,
-        "name": "Scandium",
+        "name": {
+            "en": "Scandium",
+            "cz": "Skandium"
+        },
         "symbol": "Sc",
         "mergeReq": 4
     },
     {
         "id": 22,
-        "name": "Titanium",
+        "name": {
+            "en": "Titanium",
+            "cz": "Titan"
+        },
         "symbol": "Ti",
         "mergeReq": 4
     },
     {
         "id": 23,
-        "name": "Vanadium",
+        "name": {
+            "en": "Vanadium",
+            "cz": "Vanad"
+        },
         "symbol": "V",
         "mergeReq": 4
     },
     {
         "id": 24,
-        "name": "Chromium",
+        "name": {
+            "en": "Chromium",
+            "cz": "Chrom"
+        },
         "symbol": "Cr",
         "mergeReq": 4
     },
     {
         "id": 25,
-        "name": "Manganese",
+        "name": {
+            "en": "Manganese",
+            "cz": "Mangan"
+        },
         "symbol": "Mn",
         "mergeReq": 4
     },
     {
         "id": 26,
-        "name": "Iron",
+        "name": {
+            "en": "Iron",
+            "cz": "Železo"
+        },
         "symbol": "Fe",
         "mergeReq": 4
     },
     {
         "id": 27,
-        "name": "Cobalt",
+        "name": {
+            "en": "Cobalt",
+            "cz": "Kobalt"
+        },
         "symbol": "Co",
         "mergeReq": 4
     },
     {
         "id": 28,
-        "name": "Nickel",
+        "name": {
+            "en": "Nickel",
+            "cz": "Nikl"
+        },
         "symbol": "Ni",
         "mergeReq": 4
     },
     {
         "id": 29,
-        "name": "Copper",
+        "name": {
+            "en": "Copper",
+            "cz": "Měď"
+        },
         "symbol": "Cu",
         "mergeReq": 4
     },
     {
         "id": 30,
-        "name": "Zinc",
+        "name": {
+            "en": "Zinc",
+            "cz": "Zinek"
+        },
         "symbol": "Zn",
         "mergeReq": 4
     },
     {
         "id": 31,
-        "name": "Gallium",
+        "name": {
+            "en": "Gallium",
+            "cz": "Gallium"
+        },
         "symbol": "Ga",
         "mergeReq": 3
     },
     {
         "id": 32,
-        "name": "Germanium",
+        "name": {
+            "en": "Germanium",
+            "cz": "Germanium"
+        },
         "symbol": "Ge",
         "mergeReq": 4
     },
     {
         "id": 33,
-        "name": "Arsenic",
+        "name": {
+            "en": "Arsenic",
+            "cz": "Arsen"
+        },
         "symbol": "As",
         "mergeReq": 5
     },
     {
         "id": 34,
-        "name": "Selenium",
+        "name": {
+            "en": "Selenium",
+            "cz": "Selen"
+        },
         "symbol": "Se",
         "mergeReq": 5
     },
     {
         "id": 35,
-        "name": "Bromine",
+        "name": {
+            "en": "Bromine",
+            "cz": "Brom"
+        },
         "symbol": "Br",
         "mergeReq": 5
     },
     {
         "id": 36,
-        "name": "Krypton",
+        "name": {
+            "en": "Krypton",
+            "cz": "Krypton"
+        },
         "symbol": "Kr",
         "mergeReq": 6
     },
     {
         "id": 37,
-        "name": "Rubidium",
+        "name": {
+            "en": "Rubidium",
+            "cz": "Rubidium"
+        },
         "symbol": "Rb",
         "mergeReq": 2
     },
     {
         "id": 38,
-        "name": "Strontium",
+        "name": {
+            "en": "Strontium",
+            "cz": "Stroncium"
+        },
         "symbol": "Sr",
         "mergeReq": 3
     },
     {
         "id": 39,
-        "name": "Yttrium",
+        "name": {
+            "en": "Yttrium",
+            "cz": "Yttrium"
+        },
         "symbol": "Y",
         "mergeReq": 4
     },
     {
         "id": 40,
-        "name": "Zirconium",
+        "name": {
+            "en": "Zirconium",
+            "cz": "Zirkonium"
+        },
         "symbol": "Zr",
         "mergeReq": 4
     },
     {
         "id": 41,
-        "name": "Niobium",
+        "name": {
+            "en": "Niobium",
+            "cz": "Niob"
+        },
         "symbol": "Nb",
         "mergeReq": 4
     },
     {
         "id": 42,
-        "name": "Molybdenum",
+        "name": {
+            "en": "Molybdenum",
+            "cz": "Molybden"
+        },
         "symbol": "Mo",
         "mergeReq": 4
     },
     {
         "id": 43,
-        "name": "Technetium",
+        "name": {
+            "en": "Technetium",
+            "cz": "Technecium"
+        },
         "symbol": "Tc",
         "mergeReq": 4
     },
     {
         "id": 44,
-        "name": "Ruthenium",
+        "name": {
+            "en": "Ruthenium",
+            "cz": "Ruthenium"
+        },
         "symbol": "Ru",
         "mergeReq": 4
     },
     {
         "id": 45,
-        "name": "Rhodium",
+        "name": {
+            "en": "Rhodium",
+            "cz": "Rhodium"
+        },
         "symbol": "Rh",
         "mergeReq": 4
     },
     {
         "id": 46,
-        "name": "Palladium",
+        "name": {
+            "en": "Palladium",
+            "cz": "Palladium"
+        },
         "symbol": "Pd",
         "mergeReq": 4
     },
     {
         "id": 47,
-        "name": "Silver",
+        "name": {
+            "en": "Silver",
+            "cz": "Stříbro"
+        },
         "symbol": "Ag",
         "mergeReq": 4
     },
     {
         "id": 48,
-        "name": "Cadmium",
+        "name": {
+            "en": "Cadmium",
+            "cz": "Kadmium"
+        },
         "symbol": "Cd",
         "mergeReq": 4
     },
     {
         "id": 49,
-        "name": "Indium",
+        "name": {
+            "en": "Indium",
+            "cz": "Indium"
+        },
         "symbol": "In",
         "mergeReq": 3
     },
     {
         "id": 50,
-        "name": "Tin",
+        "name": {
+            "en": "Tin",
+            "cz": "Cín"
+        },
         "symbol": "Sn",
         "mergeReq": 4
     },
     {
         "id": 51,
-        "name": "Antimony",
+        "name": {
+            "en": "Antimony",
+            "cz": "Antimon"
+        },
         "symbol": "Sb",
         "mergeReq": 5
     },
     {
         "id": 52,
-        "name": "Tellurium",
+        "name": {
+            "en": "Tellurium",
+            "cz": "Tellur"
+        },
         "symbol": "Te",
         "mergeReq": 5
     },
     {
         "id": 53,
-        "name": "Iodine",
+        "name": {
+            "en": "Iodine",
+            "cz": "Jod"
+        },
         "symbol": "I",
         "mergeReq": 5
     },
     {
         "id": 54,
-        "name": "Xenon",
+        "name": {
+            "en": "Xenon",
+            "cz": "Xenon"
+        },
         "symbol": "Xe",
         "mergeReq": 6
     },
     {
         "id": 55,
-        "name": "Cesium",
+        "name": {
+            "en": "Cesium",
+            "cz": "Cesium"
+        },
         "symbol": "Cs",
         "mergeReq": 2
     },
     {
         "id": 56,
-        "name": "Barium",
+        "name": {
+            "en": "Barium",
+            "cz": "Baryum"
+        },
         "symbol": "Ba",
         "mergeReq": 3
     },
     {
         "id": 57,
-        "name": "Lanthanum",
+        "name": {
+            "en": "Lanthanum",
+            "cz": "Lanthan"
+        },
         "symbol": "La",
         "mergeReq": 4
     },
     {
         "id": 58,
-        "name": "Cerium",
+        "name": {
+            "en": "Cerium",
+            "cz": "Cer"
+        },
         "symbol": "Ce",
         "mergeReq": 4
     },
     {
         "id": 59,
-        "name": "Praseodymium",
+        "name": {
+            "en": "Praseodymium",
+            "cz": "Praseodym"
+        },
         "symbol": "Pr",
         "mergeReq": 4
     },
     {
         "id": 60,
-        "name": "Neodymium",
+        "name": {
+            "en": "Neodymium",
+            "cz": "Neodym"
+        },
         "symbol": "Nd",
         "mergeReq": 4
     },
     {
         "id": 61,
-        "name": "Promethium",
+        "name": {
+            "en": "Promethium",
+            "cz": "Promethium"
+        },
         "symbol": "Pm",
         "mergeReq": 4
     },
     {
         "id": 62,
-        "name": "Samarium",
+        "name": {
+            "en": "Samarium",
+            "cz": "Samarium"
+        },
         "symbol": "Sm",
         "mergeReq": 4
     },
     {
         "id": 63,
-        "name": "Europium",
+        "name": {
+            "en": "Europium",
+            "cz": "Europium"
+        },
         "symbol": "Eu",
         "mergeReq": 4
     },
     {
         "id": 64,
-        "name": "Gadolinium",
+        "name": {
+            "en": "Gadolinium",
+            "cz": "Gadolinium"
+        },
         "symbol": "Gd",
         "mergeReq": 4
     },
     {
         "id": 65,
-        "name": "Terbium",
+        "name": {
+            "en": "Terbium",
+            "cz": "Terbium"
+        },
         "symbol": "Tb",
         "mergeReq": 4
     },
     {
         "id": 66,
-        "name": "Dysprosium",
+        "name": {
+            "en": "Dysprosium",
+            "cz": "Dysprosium"
+        },
         "symbol": "Dy",
         "mergeReq": 4
     },
     {
         "id": 67,
-        "name": "Holmium",
+        "name": {
+            "en": "Holmium",
+            "cz": "Holmium"
+        },
         "symbol": "Ho",
         "mergeReq": 4
     },
     {
         "id": 68,
-        "name": "Erbium",
+        "name": {
+            "en": "Erbium",
+            "cz": "Erbium"
+        },
         "symbol": "Er",
         "mergeReq": 4
     },
     {
         "id": 69,
-        "name": "Thulium",
+        "name": {
+            "en": "Thulium",
+            "cz": "Thulium"
+        },
         "symbol": "Tm",
         "mergeReq": 4
     },
     {
         "id": 70,
-        "name": "Ytterbium",
+        "name": {
+            "en": "Ytterbium",
+            "cz": "Ytterbium"
+        },
         "symbol": "Yb",
         "mergeReq": 4
     },
     {
         "id": 71,
-        "name": "Lutetium",
+        "name": {
+            "en": "Lutetium",
+            "cz": "Lutecium"
+        },
         "symbol": "Lu",
         "mergeReq": 4
     },
     {
         "id": 72,
-        "name": "Hafnium",
+        "name": {
+            "en": "Hafnium",
+            "cz": "Hafnium"
+        },
         "symbol": "Hf",
         "mergeReq": 4
     },
     {
         "id": 73,
-        "name": "Tantalum",
+        "name": {
+            "en": "Tantalum",
+            "cz": "Tantal"
+        },
         "symbol": "Ta",
         "mergeReq": 4
     },
     {
         "id": 74,
-        "name": "Tungsten",
+        "name": {
+            "en": "Tungsten",
+            "cz": "Wolfram"
+        },
         "symbol": "W",
         "mergeReq": 4
     },
     {
         "id": 75,
-        "name": "Rhenium",
+        "name": {
+            "en": "Rhenium",
+            "cz": "Rhenium"
+        },
         "symbol": "Re",
         "mergeReq": 4
     },
     {
         "id": 76,
-        "name": "Osmium",
+        "name": {
+            "en": "Osmium",
+            "cz": "Osmium"
+        },
         "symbol": "Os",
         "mergeReq": 4
     },
     {
         "id": 77,
-        "name": "Iridium",
+        "name": {
+            "en": "Iridium",
+            "cz": "Iridium"
+        },
         "symbol": "Ir",
         "mergeReq": 4
     },
     {
         "id": 78,
-        "name": "Platinum",
+        "name": {
+            "en": "Platinum",
+            "cz": "Platina"
+        },
         "symbol": "Pt",
         "mergeReq": 4
     },
     {
         "id": 79,
-        "name": "Gold",
+        "name": {
+            "en": "Gold",
+            "cz": "Zlato"
+        },
         "symbol": "Au",
         "mergeReq": 4
     },
     {
         "id": 80,
-        "name": "Mercury",
+        "name": {
+            "en": "Mercury",
+            "cz": "Rtuť"
+        },
         "symbol": "Hg",
         "mergeReq": 4
     },
     {
         "id": 81,
-        "name": "Thallium",
+        "name": {
+            "en": "Thallium",
+            "cz": "Thallium"
+        },
         "symbol": "Tl",
         "mergeReq": 3
     },
     {
         "id": 82,
-        "name": "Lead",
+        "name": {
+            "en": "Lead",
+            "cz": "Olovo"
+        },
         "symbol": "Pb",
         "mergeReq": 4
     },
     {
         "id": 83,
-        "name": "Bismuth",
+        "name": {
+            "en": "Bismuth",
+            "cz": "Bismut"
+        },
         "symbol": "Bi",
         "mergeReq": 5
     },
     {
         "id": 84,
-        "name": "Polonium",
+        "name": {
+            "en": "Polonium",
+            "cz": "Polonium"
+        },
         "symbol": "Po",
         "mergeReq": 5
     },
     {
         "id": 85,
-        "name": "Astatine",
+        "name": {
+            "en": "Astatine",
+            "cz": "Astat"
+        },
         "symbol": "At",
         "mergeReq": 5
     },
     {
         "id": 86,
-        "name": "Radon",
+        "name": {
+            "en": "Radon",
+            "cz": "Radon"
+        },
         "symbol": "Rn",
         "mergeReq": 6
     },
     {
         "id": 87,
-        "name": "Francium",
+        "name": {
+            "en": "Francium",
+            "cz": "Francium"
+        },
         "symbol": "Fr",
         "mergeReq": 2
     },
     {
         "id": 88,
-        "name": "Radium",
+        "name": {
+            "en": "Radium",
+            "cz": "Radium"
+        },
         "symbol": "Ra",
         "mergeReq": 3
     },
     {
         "id": 89,
-        "name": "Actinium",
+        "name": {
+            "en": "Actinium",
+            "cz": "Aktinium"
+        },
         "symbol": "Ac",
         "mergeReq": 4
     },
     {
         "id": 90,
-        "name": "Thorium",
+        "name": {
+            "en": "Thorium",
+            "cz": "Thorium"
+        },
         "symbol": "Th",
         "mergeReq": 4
     },
     {
         "id": 91,
-        "name": "Protactinium",
+        "name": {
+            "en": "Protactinium",
+            "cz": "Protaktinium"
+        },
         "symbol": "Pa",
         "mergeReq": 4
     },
     {
         "id": 92,
-        "name": "Uranium",
+        "name": {
+            "en": "Uranium",
+            "cz": "Uran"
+        },
         "symbol": "U",
         "mergeReq": 4
     },
     {
         "id": 93,
-        "name": "Neptunium",
+        "name": {
+            "en": "Neptunium",
+            "cz": "Neptunium"
+        },
         "symbol": "Np",
         "mergeReq": 4
     },
     {
         "id": 94,
-        "name": "Plutonium",
+        "name": {
+            "en": "Plutonium",
+            "cz": "Plutonium"
+        },
         "symbol": "Pu",
         "mergeReq": 4
     },
     {
         "id": 95,
-        "name": "Americium",
+        "name": {
+            "en": "Americium",
+            "cz": "Americium"
+        },
         "symbol": "Am",
         "mergeReq": 4
     },
     {
         "id": 96,
-        "name": "Curium",
+        "name": {
+            "en": "Curium",
+            "cz": "Curium"
+        },
         "symbol": "Cm",
         "mergeReq": 4
     },
     {
         "id": 97,
-        "name": "Berkelium",
+        "name": {
+            "en": "Berkelium",
+            "cz": "Berkelium"
+        },
         "symbol": "Bk",
         "mergeReq": 4
     },
     {
         "id": 98,
-        "name": "Californium",
+        "name": {
+            "en": "Californium",
+            "cz": "Kalifornium"
+        },
         "symbol": "Cf",
         "mergeReq": 4
     },
     {
         "id": 99,
-        "name": "Einsteinium",
+        "name": {
+            "en": "Einsteinium",
+            "cz": "Einsteinium"
+        },
         "symbol": "Es",
         "mergeReq": 4
     },
     {
         "id": 100,
-        "name": "Fermium",
+        "name": {
+            "en": "Fermium",
+            "cz": "Fermium"
+        },
         "symbol": "Fm",
         "mergeReq": 4
     },
     {
         "id": 101,
-        "name": "Mendelevium",
+        "name": {
+            "en": "Mendelevium",
+            "cz": "Mendelevium"
+        },
         "symbol": "Md",
         "mergeReq": 4
     },
     {
         "id": 102,
-        "name": "Nobelium",
+        "name": {
+            "en": "Nobelium",
+            "cz": "Nobelium"
+        },
         "symbol": "No",
         "mergeReq": 4
     },
     {
         "id": 103,
-        "name": "Lawrencium",
+        "name": {
+            "en": "Lawrencium",
+            "cz": "Lawrencium"
+        },
         "symbol": "Lr",
         "mergeReq": 4
     },
     {
         "id": 104,
-        "name": "Rutherfordium",
+        "name": {
+            "en": "Rutherfordium",
+            "cz": "Rutherfordium"
+        },
         "symbol": "Rf",
         "mergeReq": 4
     },
     {
         "id": 105,
-        "name": "Dubnium",
+        "name": {
+            "en": "Dubnium",
+            "cz": "Dubnium"
+        },
         "symbol": "Db",
         "mergeReq": 4
     },
     {
         "id": 106,
-        "name": "Seaborgium",
+        "name": {
+            "en": "Seaborgium",
+            "cz": "Seaborgium"
+        },
         "symbol": "Sg",
         "mergeReq": 4
     },
     {
         "id": 107,
-        "name": "Bohrium",
+        "name": {
+            "en": "Bohrium",
+            "cz": "Bohrium"
+        },
         "symbol": "Bh",
         "mergeReq": 4
     },
     {
         "id": 108,
-        "name": "Hassium",
+        "name": {
+            "en": "Hassium",
+            "cz": "Hassium"
+        },
         "symbol": "Hs",
         "mergeReq": 4
     },
     {
         "id": 109,
-        "name": "Meitnerium",
+        "name": {
+            "en": "Meitnerium",
+            "cz": "Meitnerium"
+        },
         "symbol": "Mt",
         "mergeReq": 4
     },
     {
         "id": 110,
-        "name": "Darmstadtium",
+        "name": {
+            "en": "Darmstadtium",
+            "cz": "Darmstadtium"
+        },
         "symbol": "Ds",
         "mergeReq": 4
     },
     {
         "id": 111,
-        "name": "Roentgenium",
+        "name": {
+            "en": "Roentgenium",
+            "cz": "Roentgenium"
+        },
         "symbol": "Rg",
         "mergeReq": 4
     },
     {
         "id": 112,
-        "name": "Copernicium",
+        "name": {
+            "en": "Copernicium",
+            "cz": "Kopernicium"
+        },
         "symbol": "Cn",
         "mergeReq": 4
     },
     {
         "id": 113,
-        "name": "Nihonium",
+        "name": {
+            "en": "Nihonium",
+            "cz": "Nihonium"
+        },
         "symbol": "Nh",
         "mergeReq": 3
     },
     {
         "id": 114,
-        "name": "Flerovium",
+        "name": {
+            "en": "Flerovium",
+            "cz": "Flerovium"
+        },
         "symbol": "Fl",
         "mergeReq": 4
     },
     {
         "id": 115,
-        "name": "Moscovium",
+        "name": {
+            "en": "Moscovium",
+            "cz": "Moscovium"
+        },
         "symbol": "Mc",
         "mergeReq": 5
     },
     {
         "id": 116,
-        "name": "Livermorium",
+        "name": {
+            "en": "Livermorium",
+            "cz": "Livermorium"
+        },
         "symbol": "Lv",
         "mergeReq": 5
     },
     {
         "id": 117,
-        "name": "Tennessine",
+        "name": {
+            "en": "Tennessine",
+            "cz": "Tennessine"
+        },
         "symbol": "Ts",
         "mergeReq": 5
     },
     {
         "id": 118,
-        "name": "Oganesson",
+        "name": {
+            "en": "Oganesson",
+            "cz": "Oganesson"
+        },
         "symbol": "Og",
         "mergeReq": 6
     }
-]
-;
+];
 
 // Molecule Definitions
 const MOLECULES = [
     {
         "id": 1,
-        "name": "Diatomic Hydrogen",
+        "name": {
+            "en": "Diatomic Hydrogen",
+            "cz": "Dvouatomový vodík"
+        },
         "symbol": "H2",
         "reqs": {
             "1": 2
@@ -1035,7 +1425,10 @@ const MOLECULES = [
     },
     {
         "id": 2,
-        "name": "Water",
+        "name": {
+            "en": "Water",
+            "cz": "Voda"
+        },
         "symbol": "H2O",
         "reqs": {
             "1": 2,
@@ -1044,7 +1437,10 @@ const MOLECULES = [
     },
     {
         "id": 3,
-        "name": "Carbon Dioxide",
+        "name": {
+            "en": "Carbon Dioxide",
+            "cz": "Oxid uhličitý"
+        },
         "symbol": "CO2",
         "reqs": {
             "6": 1,
@@ -1053,7 +1449,10 @@ const MOLECULES = [
     },
     {
         "id": 4,
-        "name": "Methane",
+        "name": {
+            "en": "Methane",
+            "cz": "Metan"
+        },
         "symbol": "CH4",
         "reqs": {
             "6": 1,
@@ -1062,7 +1461,10 @@ const MOLECULES = [
     },
     {
         "id": 5,
-        "name": "Ammonia",
+        "name": {
+            "en": "Ammonia",
+            "cz": "Amoniak"
+        },
         "symbol": "NH3",
         "reqs": {
             "7": 1,
@@ -1071,7 +1473,10 @@ const MOLECULES = [
     },
     {
         "id": 6,
-        "name": "Sodium Chloride",
+        "name": {
+            "en": "Sodium Chloride",
+            "cz": "Chlorid sodný"
+        },
         "symbol": "NaCl",
         "reqs": {
             "11": 1,
@@ -1080,7 +1485,10 @@ const MOLECULES = [
     },
     {
         "id": 7,
-        "name": "Sulfuric Acid",
+        "name": {
+            "en": "Sulfuric Acid",
+            "cz": "Kyselina sírová"
+        },
         "symbol": "H2SO4",
         "reqs": {
             "1": 2,
@@ -1090,7 +1498,10 @@ const MOLECULES = [
     },
     {
         "id": 8,
-        "name": "Glucose",
+        "name": {
+            "en": "Glucose",
+            "cz": "Glukóza"
+        },
         "symbol": "C6H12O6",
         "reqs": {
             "6": 6,
@@ -1100,7 +1511,10 @@ const MOLECULES = [
     },
     {
         "id": 9,
-        "name": "Ozone",
+        "name": {
+            "en": "Ozone",
+            "cz": "Ozon"
+        },
         "symbol": "O3",
         "reqs": {
             "8": 3
@@ -1108,7 +1522,10 @@ const MOLECULES = [
     },
     {
         "id": 10,
-        "name": "Nitric Acid",
+        "name": {
+            "en": "Nitric Acid",
+            "cz": "Kyselina dusičná"
+        },
         "symbol": "HNO3",
         "reqs": {
             "1": 1,
@@ -1118,7 +1535,10 @@ const MOLECULES = [
     },
     {
         "id": 11,
-        "name": "Hydrochloric Acid",
+        "name": {
+            "en": "Hydrochloric Acid",
+            "cz": "Kyselina chlorovodíková"
+        },
         "symbol": "HCl",
         "reqs": {
             "1": 1,
@@ -1127,7 +1547,10 @@ const MOLECULES = [
     },
     {
         "id": 12,
-        "name": "Ethanol",
+        "name": {
+            "en": "Ethanol",
+            "cz": "Etanol"
+        },
         "symbol": "C2H5OH",
         "reqs": {
             "6": 2,
@@ -1137,7 +1560,10 @@ const MOLECULES = [
     },
     {
         "id": 13,
-        "name": "Benzene",
+        "name": {
+            "en": "Benzene",
+            "cz": "Benzen"
+        },
         "symbol": "C6H6",
         "reqs": {
             "6": 6,
@@ -1146,7 +1572,10 @@ const MOLECULES = [
     },
     {
         "id": 14,
-        "name": "Aspirin",
+        "name": {
+            "en": "Aspirin",
+            "cz": "Aspirin"
+        },
         "symbol": "C9H8O4",
         "reqs": {
             "6": 9,
@@ -1156,7 +1585,10 @@ const MOLECULES = [
     },
     {
         "id": 15,
-        "name": "Caffeine",
+        "name": {
+            "en": "Caffeine",
+            "cz": "Kofein"
+        },
         "symbol": "C8H10N4O2",
         "reqs": {
             "6": 8,
@@ -1167,7 +1599,135 @@ const MOLECULES = [
     },
     {
         "id": 16,
-        "name": "Calcium Carbonate",
+        "name": {
+            "en": "Adenosine Triphosphate (ATP)",
+            "cz": "Adenosintrifosfát (ATP)"
+        },
+        "symbol": "C10H16N5O13P3",
+        "reqs": {
+            "6": 10,
+            "1": 16,
+            "7": 5,
+            "8": 13,
+            "15": 3
+        }
+    },
+    {
+        "id": 17,
+        "name": {
+            "en": "Urea",
+            "cz": "Močovina"
+        },
+        "symbol": "CH4N2O",
+        "reqs": {
+            "6": 1,
+            "1": 4,
+            "7": 2,
+            "8": 1
+        }
+    },
+    {
+        "id": 18,
+        "name": {
+            "en": "Glycine",
+            "cz": "Glycin"
+        },
+        "symbol": "C2H5NO2",
+        "reqs": {
+            "6": 2,
+            "1": 5,
+            "7": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 19,
+        "name": {
+            "en": "Tryptophan",
+            "cz": "Tryptofan"
+        },
+        "symbol": "C11H12N2O2",
+        "reqs": {
+            "6": 11,
+            "1": 12,
+            "7": 2,
+            "8": 2
+        }
+    },
+    {
+        "id": 20,
+        "name": {
+            "en": "Adrenaline",
+            "cz": "Adrenalin"
+        },
+        "symbol": "C9H13NO3",
+        "reqs": {
+            "6": 9,
+            "1": 13,
+            "7": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 21,
+        "name": {
+            "en": "Dopamine",
+            "cz": "Dopamin"
+        },
+        "symbol": "C8H11NO2",
+        "reqs": {
+            "6": 8,
+            "1": 11,
+            "7": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 22,
+        "name": {
+            "en": "Serotonin",
+            "cz": "Serotonin"
+        },
+        "symbol": "C10H12N2O",
+        "reqs": {
+            "6": 10,
+            "1": 12,
+            "7": 2,
+            "8": 1
+        }
+    },
+    {
+        "id": 23,
+        "name": {
+            "en": "Cholesterol",
+            "cz": "Cholesterol"
+        },
+        "symbol": "C27H46O",
+        "reqs": {
+            "6": 27,
+            "1": 46,
+            "8": 1
+        }
+    },
+    {
+        "id": 24,
+        "name": {
+            "en": "Vitamin C",
+            "cz": "Vitamín C"
+        },
+        "symbol": "C6H8O6",
+        "reqs": {
+            "6": 6,
+            "1": 8,
+            "8": 6
+        }
+    },
+    {
+        "id": 25,
+        "name": {
+            "en": "Calcium Carbonate",
+            "cz": "Uhličitan vápenatý"
+        },
         "symbol": "CaCO3",
         "reqs": {
             "20": 1,
@@ -1176,8 +1736,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 17,
-        "name": "Potassium Nitrate",
+        "id": 26,
+        "name": {
+            "en": "Potassium Nitrate",
+            "cz": "Dusičnan draselný"
+        },
         "symbol": "KNO3",
         "reqs": {
             "19": 1,
@@ -1186,8 +1749,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 18,
-        "name": "Iron(III) Oxide",
+        "id": 27,
+        "name": {
+            "en": "Iron(III) Oxide",
+            "cz": "Oxid železitý"
+        },
         "symbol": "Fe2O3",
         "reqs": {
             "26": 2,
@@ -1195,8 +1761,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 19,
-        "name": "Phosphoric Acid",
+        "id": 28,
+        "name": {
+            "en": "Phosphoric Acid",
+            "cz": "Kyselina fosforečná"
+        },
         "symbol": "H3PO4",
         "reqs": {
             "1": 3,
@@ -1205,8 +1774,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 20,
-        "name": "Hydrogen Peroxide",
+        "id": 29,
+        "name": {
+            "en": "Hydrogen Peroxide",
+            "cz": "Peroxid vodíku"
+        },
         "symbol": "H2O2",
         "reqs": {
             "1": 2,
@@ -1214,8 +1786,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 21,
-        "name": "Sodium Hydroxide",
+        "id": 30,
+        "name": {
+            "en": "Sodium Hydroxide",
+            "cz": "Hydroxid sodný"
+        },
         "symbol": "NaOH",
         "reqs": {
             "11": 1,
@@ -1224,8 +1799,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 22,
-        "name": "Silver Nitrate",
+        "id": 31,
+        "name": {
+            "en": "Silver Nitrate",
+            "cz": "Dusičnan stříbrný"
+        },
         "symbol": "AgNO3",
         "reqs": {
             "47": 1,
@@ -1234,8 +1812,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 23,
-        "name": "Copper(II) Sulfate",
+        "id": 32,
+        "name": {
+            "en": "Copper(II) Sulfate",
+            "cz": "Síran měďnatý"
+        },
         "symbol": "CuSO4",
         "reqs": {
             "29": 1,
@@ -1244,8 +1825,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 24,
-        "name": "Zinc Oxide",
+        "id": 33,
+        "name": {
+            "en": "Zinc Oxide",
+            "cz": "Oxid zinečnatý"
+        },
         "symbol": "ZnO",
         "reqs": {
             "30": 1,
@@ -1253,8 +1837,11 @@ const MOLECULES = [
         }
     },
     {
-        "id": 25,
-        "name": "Titanium Dioxide",
+        "id": 34,
+        "name": {
+            "en": "Titanium Dioxide",
+            "cz": "Oxid titaničitý"
+        },
         "symbol": "TiO2",
         "reqs": {
             "22": 1,
@@ -1262,8 +1849,63 @@ const MOLECULES = [
         }
     },
     {
-        "id": 26,
-        "name": "Uranium Hexafluoride",
+        "id": 35,
+        "name": {
+            "en": "Lead(II) Sulfide",
+            "cz": "Sulfid olovnatý"
+        },
+        "symbol": "PbS",
+        "reqs": {
+            "82": 1,
+            "16": 1
+        }
+    },
+    {
+        "id": 36,
+        "name": {
+            "en": "Sodium Bicarbonate",
+            "cz": "Hydrogenuhličitan sodný"
+        },
+        "symbol": "NaHCO3",
+        "reqs": {
+            "11": 1,
+            "1": 1,
+            "6": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 37,
+        "name": {
+            "en": "Magnesium Sulfate",
+            "cz": "Síran hořečnatý"
+        },
+        "symbol": "MgSO4",
+        "reqs": {
+            "12": 1,
+            "16": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 38,
+        "name": {
+            "en": "Calcium Sulfate",
+            "cz": "Síran vápenatý"
+        },
+        "symbol": "CaSO4",
+        "reqs": {
+            "20": 1,
+            "16": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 39,
+        "name": {
+            "en": "Uranium Hexafluoride",
+            "cz": "Fluorid uranový"
+        },
         "symbol": "UF6",
         "reqs": {
             "92": 1,
@@ -1271,21 +1913,253 @@ const MOLECULES = [
         }
     },
     {
-        "id": 27,
-        "name": "Lead(II) Sulfide",
-        "symbol": "PbS",
+        "id": 40,
+        "name": {
+            "en": "Plutonium Dioxide",
+            "cz": "Oxid plutoničitý"
+        },
+        "symbol": "PuO2",
         "reqs": {
-            "82": 1,
-            "16": 1
+            "94": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 41,
+        "name": {
+            "en": "Tungsten Carbide",
+            "cz": "Karbid wolframu"
+        },
+        "symbol": "WC",
+        "reqs": {
+            "74": 1,
+            "6": 1
+        }
+    },
+    {
+        "id": 42,
+        "name": {
+            "en": "Silicon Dioxide",
+            "cz": "Oxid křemičitý"
+        },
+        "symbol": "SiO2",
+        "reqs": {
+            "14": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 43,
+        "name": {
+            "en": "Aluminum Oxide",
+            "cz": "Oxid hlinitý"
+        },
+        "symbol": "Al2O3",
+        "reqs": {
+            "13": 2,
+            "8": 3
+        }
+    },
+    {
+        "id": 44,
+        "name": {
+            "en": "Lithium Cobalt Oxide",
+            "cz": "Oxid lithno-kobaltitý"
+        },
+        "symbol": "LiCoO2",
+        "reqs": {
+            "3": 1,
+            "27": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 45,
+        "name": {
+            "en": "Gallium Arsenide",
+            "cz": "Arsenid gallitý"
+        },
+        "symbol": "GaAs",
+        "reqs": {
+            "31": 1,
+            "33": 1
+        }
+    },
+    {
+        "id": 46,
+        "name": {
+            "en": "Indium Tin Oxide",
+            "cz": "Oxid indito-cíničitý"
+        },
+        "symbol": "In2SnO4",
+        "reqs": {
+            "49": 2,
+            "50": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 47,
+        "name": {
+            "en": "Yttrium Barium Copper Oxide",
+            "cz": "Oxid yttrio-barnato-měďnatý"
+        },
+        "symbol": "YBa2Cu3O7",
+        "reqs": {
+            "39": 1,
+            "56": 2,
+            "29": 3,
+            "8": 7
+        }
+    },
+    {
+        "id": 48,
+        "name": {
+            "en": "Sulfur Hexafluoride",
+            "cz": "Fluorid sírový"
+        },
+        "symbol": "SF6",
+        "reqs": {
+            "16": 1,
+            "9": 6
+        }
+    },
+    {
+        "id": 49,
+        "name": {
+            "en": "Trinitrotoluene (TNT)",
+            "cz": "Trinitrotoluen (TNT)"
+        },
+        "symbol": "C7H5N3O6",
+        "reqs": {
+            "6": 7,
+            "1": 5,
+            "7": 3,
+            "8": 6
+        }
+    },
+    {
+        "id": 50,
+        "name": {
+            "en": "Nitroglycerin",
+            "cz": "Nitroglycerin"
+        },
+        "symbol": "C3H5N3O9",
+        "reqs": {
+            "6": 3,
+            "1": 5,
+            "7": 3,
+            "8": 9
+        }
+    },
+    {
+        "id": 51,
+        "name": {
+            "en": "Lysergic acid diethylamide (LSD)",
+            "cz": "Diethylamid kyseliny lysergové (LSD)"
+        },
+        "symbol": "C20H25N3O",
+        "reqs": {
+            "6": 20,
+            "1": 25,
+            "7": 3,
+            "8": 1
+        }
+    },
+    {
+        "id": 52,
+        "name": {
+            "en": "Buckyball",
+            "cz": "Fulleren"
+        },
+        "symbol": "C60",
+        "reqs": {
+            "6": 60
+        }
+    },
+    {
+        "id": 53,
+        "name": {
+            "en": "Cyanide",
+            "cz": "Kyanid"
+        },
+        "symbol": "CN",
+        "reqs": {
+            "6": 1,
+            "7": 1
+        }
+    },
+    {
+        "id": 54,
+        "name": {
+            "en": "Hydrazine",
+            "cz": "Hydrazin"
+        },
+        "symbol": "N2H4",
+        "reqs": {
+            "7": 2,
+            "1": 4
+        }
+    },
+    {
+        "id": 55,
+        "name": {
+            "en": "Heavy Water",
+            "cz": "Těžká voda"
+        },
+        "symbol": "D2O",
+        "reqs": {
+            "1": 2,
+            "8": 1
+        }
+    },
+    {
+        "id": 56,
+        "name": {
+            "en": "Formaldehyde",
+            "cz": "Formaldehyd"
+        },
+        "symbol": "CH2O",
+        "reqs": {
+            "6": 1,
+            "1": 2,
+            "8": 1
         }
     }
-]
-;
+];
 
 // Game Loop Setup
 let lastTick = Date.now();
 
 // Upgrades & Automation Logic
+function getAutobuyerCost() {
+    let a = 1, b = 1;
+    for (let i = 0; i < game.totalMoleculeAutobuyersUnlocked; i++) {
+        let temp = a + b;
+        a = b;
+        b = temp;
+    }
+    return a;
+}
+
+function unlockMoleculeAutobuyer(molId) {
+    const cost = getAutobuyerCost();
+    if (game.backgroundRadiation >= cost && !game.unlockedMoleculeAutobuyers[molId]) {
+        game.backgroundRadiation -= cost;
+        game.unlockedMoleculeAutobuyers[molId] = true;
+        game.moleculeAutobuyersActive[molId] = true;
+        game.totalMoleculeAutobuyersUnlocked++;
+        updateUI();
+    }
+}
+
+function toggleMoleculeAutobuyer(molId) {
+    if (game.unlockedMoleculeAutobuyers[molId]) {
+        game.moleculeAutobuyersActive[molId] = !game.moleculeAutobuyersActive[molId];
+        updateUI();
+    }
+}
+
 function getGeneratorCost() {
     return Math.floor(15 * Math.pow(1.7, game.generators)); // Increased scaling
 }
@@ -1356,6 +2230,8 @@ function gameTick() {
 
 
 function simulateProgress(dt) {
+    game.stats.timePlayedSeconds += dt;
+
     // Make base generation slightly slower initially (0.8 multiplier)
     const baseGenerationSpeed = 0.8;
 
@@ -1374,11 +2250,24 @@ function simulateProgress(dt) {
         game.backgroundRadiation += (ch4Bonus * dt);
     }
 
+    // Process Molecule Autobuyers
+    // We try to craft molecules for which autobuyers are active
+    for (let molId in game.unlockedMoleculeAutobuyers) {
+        if (game.unlockedMoleculeAutobuyers[molId] && game.moleculeAutobuyersActive[molId]) {
+            // Attempt to buy max possible with current resources.
+            // A more balanced approach might limit crafts per second based on a new stat,
+            // but for now we instantly craft as many as possible given the available atoms.
+            craftMolecule(parseInt(molId), 'max');
+        }
+    }
+
     // 1. Generators produce Quarks
     if (game.generators > 0 && game.automationToggles.generators) {
         const radiationMultiplier = 1 + (game.backgroundRadiation * 0.05);
         const quarksPerSec = game.generators * radiationMultiplier * baseGenerationSpeed * h2Bonus * peBonus;
-        game.quarks += quarksPerSec * dt;
+        const generated = quarksPerSec * dt;
+        game.quarks += generated;
+        game.stats.totalQuarksEver += generated;
     }
 
     // 1.5 Synthesizers automate Hydrogen creation
@@ -1432,6 +2321,7 @@ function simulateProgress(dt) {
                 if (mergesToDo > 0) {
                     game.elements[i] -= mergesToDo * req;
                     game.elements[i+1] += mergesToDo;
+                    game.stats.totalWeightProduced += mergesToDo * hEquivalents[i+1];
                 }
             }
         }
@@ -1476,7 +2366,7 @@ function doExperiment() {
     for (let eId in experimentReqs) {
         if (game.elements[eId] < experimentReqs[eId]) {
             resultDiv.style.color = "red";
-            resultDiv.textContent = `Not enough ${ELEMENTS.find(e => e.id == eId).name}!`;
+            resultDiv.textContent = `Not enough ${ELEMENTS.find(e => e.id == eId).name[game.language]}!`;
             return;
         }
     }
@@ -1550,11 +2440,11 @@ function doExperiment() {
     if (discoveredMol) {
         if (game.discoveredMolecules[discoveredMol.id]) {
             resultDiv.style.color = "orange";
-            resultDiv.textContent = `You already discovered ${discoveredMol.name} (${discoveredMol.symbol})!`;
+            resultDiv.textContent = `You already discovered ${discoveredMol.name[game.language]} (${discoveredMol.symbol})!`;
         } else {
             game.discoveredMolecules[discoveredMol.id] = true;
             resultDiv.style.color = "#4ade80"; // green
-            resultDiv.textContent = `Success! You discovered ${discoveredMol.name} (${discoveredMol.symbol})!`;
+            resultDiv.textContent = `Success! You discovered ${discoveredMol.name[game.language]} (${discoveredMol.symbol})!`;
         }
     } else if (discoveredMon) {
         if (game.discoveredMonomers[discoveredMon.id]) {
@@ -1604,7 +2494,7 @@ function startResearch() {
         const resultDiv = document.getElementById("experiment-result");
         if (resultDiv) {
             resultDiv.style.color = "#4ade80";
-            resultDiv.textContent = `Research complete! You discovered ${mol.name} (${mol.symbol})!`;
+            resultDiv.textContent = `Research complete! You discovered ${mol.name[game.language]} (${mol.symbol})!`;
         }
 
         updateUI();
@@ -1700,7 +2590,9 @@ function gatherQuarks() {
     const h2Bonus = 1 + ((game.molecules[1] || 0) * 0.5);
     const peBonus = 1 + ((game.polymers[1] || 0) * 0.1);
     const radiationMultiplier = 1 + (game.backgroundRadiation * 0.05); // 5% boost per radiation
-    game.quarks += 1 * radiationMultiplier * h2Bonus * peBonus;
+    const generated = 1 * radiationMultiplier * h2Bonus * peBonus;
+    game.quarks += generated;
+    game.stats.totalQuarksEver += generated;
     updateUI();
 }
 
@@ -1725,6 +2617,8 @@ function mergeElement(elementId) {
         const possibleMerges = Math.floor(game.elements[prevId] / req);
         game.elements[prevId] -= possibleMerges * req;
         game.elements[elementId] += possibleMerges;
+        // Approximation: elements weigh basically their hydrogen equivalent
+        game.stats.totalWeightProduced += possibleMerges * hEquivalents[elementId];
         updateUI();
     }
 }
@@ -1838,7 +2732,7 @@ function initUI() {
                 <span class="periodic-number">${el.id}</span>
                 <span class="periodic-symbol">${el.symbol}</span>
                 <span class="periodic-amt" id="pt-amt-${el.id}">0</span>
-                <div class="cell-tooltip">${el.name}<br>${costText}</div>
+                <div class="cell-tooltip">${el.name[game.language]}<br>${costText}</div>
             </div>
         `;
 
@@ -1854,7 +2748,7 @@ function initUI() {
             const mergeBtn = document.createElement("button");
             mergeBtn.className = "action-btn hidden";
             mergeBtn.id = `btn-merge-${el.id}`;
-            mergeBtn.innerHTML = `${t.merge} ${prevEl.name} ${t.into} ${el.name} <span class="cost">(${el.mergeReq} ${prevEl.symbol})</span>`;
+            mergeBtn.innerHTML = `${t.merge} ${prevEl.name[game.language]} ${t.into} ${el.name[game.language]} <span class="cost">(${el.mergeReq} ${prevEl.symbol})</span>`;
             mergeBtn.onclick = () => mergeElement(el.id);
             mergersContainer.appendChild(mergeBtn);
         }
@@ -1862,10 +2756,46 @@ function initUI() {
 
     periodicGrid.innerHTML = ptHTML;
 
+    // Handle Buy Amount buttons
+    document.querySelectorAll(".buy-amt-btn").forEach(btn => {
+        btn.onclick = (e) => {
+            document.querySelectorAll(".buy-amt-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            const amtStr = btn.getAttribute("data-amt");
+            if (amtStr === "max") {
+                globalCraftAmount = "max";
+            } else {
+                globalCraftAmount = parseInt(amtStr);
+            }
+            updateUI();
+        };
+    });
+
     // Also populate the modal periodic grid with a cloned version but different IDs to avoid conflicts
     const modalPeriodicGrid = document.getElementById("modal-periodic-grid");
     if (modalPeriodicGrid) {
         modalPeriodicGrid.innerHTML = ptHTML.replace(/pt-cell-/g, 'modal-pt-cell-').replace(/pt-amt-/g, 'modal-pt-amt-');
+
+        // Add click listeners to modal cells for experiment selection
+        ELEMENTS.forEach(el => {
+            const cell = document.getElementById(`modal-pt-cell-${el.id}`);
+            if (cell) {
+                cell.onclick = () => {
+                    const modal = document.getElementById("pt-modal");
+                    const slot = modal.getAttribute("data-selecting-for-slot");
+                    if (slot) {
+                        // Check if unlocked
+                        if (!cell.classList.contains("hidden")) {
+                            document.getElementById(`exp-element-${slot}`).value = el.id;
+                            document.getElementById(`btn-select-exp-${slot}`).textContent = `${el.name[game.language]} (${el.symbol})`;
+                            modal.classList.add("hidden");
+                            modal.removeAttribute("data-selecting-for-slot");
+                            modalPeriodicGrid.classList.remove("selection-mode");
+                        }
+                    }
+                };
+            }
+        });
     }
 
     // Build Molecules UI
@@ -1882,13 +2812,20 @@ function initUI() {
             moleculesContainer.innerHTML += `
                 <div class="molecule-box hidden" id="mol-box-${mol.id}">
                     <div class="mol-header">
-                        <strong>${mol.name} (${mol.symbol})</strong>
+                        <strong>${mol.name[game.language]} (${mol.symbol})</strong>
                         <span>${t.owned}: <span id="mol-amt-${mol.id}">0</span></span>
                     </div>
                     <div class="mol-bonus">${bonusText} <span id="mol-bonus-${mol.id}">1</span></div>
                     <button id="btn-craft-${mol.id}" class="action-btn mol-craft-btn">
                         ${t.craft} ${mol.symbol} <span class="cost">(${reqHtml.trim()})</span>
                     </button>
+                    <div class="mol-autobuyer-container" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 0.9rem; color: #94a3b8;">Autobuyer:</span>
+                        <button id="btn-unlock-autobuyer-${mol.id}" class="action-btn prestige-btn" style="width: auto; padding: 5px 10px; margin: 0; font-size: 0.9rem;">
+                            Unlock (Cost: <span id="autobuyer-cost-${mol.id}">1</span> Rad)
+                        </button>
+                        <button id="btn-toggle-autobuyer-${mol.id}" class="toggle-btn hidden" style="margin: 0;">OFF</button>
+                    </div>
                     <div id="mol-hint-${mol.id}" class="mol-hint hidden">${t[mol.hintKey] || "Unknown Molecule"}</div>
                 </div>
             `;
@@ -1898,20 +2835,36 @@ function initUI() {
         MOLECULES.forEach(mol => {
             const btn = document.getElementById(`btn-craft-${mol.id}`);
             if(btn) btn.onclick = () => craftMolecule(mol.id);
+
+            const unlockBtn = document.getElementById(`btn-unlock-autobuyer-${mol.id}`);
+            if(unlockBtn) unlockBtn.onclick = () => unlockMoleculeAutobuyer(mol.id);
+
+            const toggleBtn = document.getElementById(`btn-toggle-autobuyer-${mol.id}`);
+            if(toggleBtn) toggleBtn.onclick = () => toggleMoleculeAutobuyer(mol.id);
         });
 
-        // Populate Experiment Dropdowns
-        const expSelects = [document.getElementById("exp-element-1"), document.getElementById("exp-element-2"), document.getElementById("exp-element-3")];
-        expSelects.forEach((select, idx) => {
-            if (select) {
-                // Keep the 'None' option for 2 and 3
-                const originalHtml = idx > 0 ? '<option value="0">None</option>' : '';
-                let optionsHtml = originalHtml;
-                ELEMENTS.forEach(el => {
-                    optionsHtml += `<option value="${el.id}">${el.name} (${el.symbol})</option>`;
-                });
-                select.innerHTML = optionsHtml;
-            }
+        // Setup Experiment Element Selection
+        document.querySelectorAll(".element-select-btn").forEach(btn => {
+            btn.onclick = () => {
+                const slot = btn.getAttribute("data-slot");
+                document.getElementById("pt-modal").setAttribute("data-selecting-for-slot", slot);
+                document.getElementById("pt-modal").classList.remove("hidden");
+
+                // Add visual cue in modal that we are selecting
+                const modalGrid = document.getElementById("modal-periodic-grid");
+                if (modalGrid) {
+                    modalGrid.classList.add("selection-mode");
+                }
+            };
+        });
+
+        // Setup Clear Buttons
+        document.querySelectorAll(".element-clear-btn").forEach(btn => {
+            btn.onclick = () => {
+                const slot = btn.getAttribute("data-slot");
+                document.getElementById(`exp-element-${slot}`).value = "0";
+                document.getElementById(`btn-select-exp-${slot}`).textContent = slot === "1" ? "Select Element" : "None";
+            };
         });
 
         const btnExperiment = document.getElementById("btn-experiment");
@@ -2053,16 +3006,73 @@ function updateUI() {
 
             if(amtSpan) amtSpan.textContent = formatNumber(game.molecules[mol.id] || 0);
 
-            let canCraft = true;
+            let maxPossible = Infinity;
             for (let eId in mol.reqs) {
-                if (game.elements[eId] < mol.reqs[eId]) canCraft = false;
+                const available = game.elements[eId] || 0;
+                const possible = Math.floor(available / mol.reqs[eId]);
+                if (possible < maxPossible) maxPossible = possible;
+            }
+
+            let amountToCraft = 1;
+            if (globalCraftAmount === 'max') {
+                amountToCraft = maxPossible;
+            } else {
+                amountToCraft = Math.min(globalCraftAmount, maxPossible);
+            }
+
+            let canCraft = amountToCraft > 0 && maxPossible > 0;
+            // But if global is not max, and we don't even have enough for the global amount,
+            // we should probably disable it if they want EXACTLY that amount,
+            // OR we let them craft whatever max is up to that amount (which is what amountToCraft does).
+            // Let's strictly require them to have enough for the selected amount, EXCEPT for max.
+            if (globalCraftAmount !== 'max' && maxPossible < globalCraftAmount) {
+                 canCraft = false;
             }
 
             if(btn) {
                 btn.classList.remove("hidden");
                 btn.disabled = !canCraft;
+
+                // Update button text to reflect cost based on selected amount
+                let displayAmount = canCraft ? (globalCraftAmount === 'max' ? maxPossible : globalCraftAmount) : (globalCraftAmount === 'max' ? 1 : globalCraftAmount);
+
+                let reqHtml = "";
+                for (let eId in mol.reqs) {
+                    const eDef = ELEMENTS.find(e => e.id == eId);
+                    reqHtml += `${mol.reqs[eId] * displayAmount} ${eDef.symbol} `;
+                }
+                const t = TRANSLATIONS[game.language] || TRANSLATIONS["en"];
+                btn.innerHTML = `${t.craft} ${displayAmount}x ${mol.symbol} <span class="cost">(${reqHtml.trim()})</span>`;
             }
             if(hint) hint.classList.add("hidden");
+
+            // Update Autobuyer buttons
+            const unlockBtn = document.getElementById(`btn-unlock-autobuyer-${mol.id}`);
+            const toggleBtn = document.getElementById(`btn-toggle-autobuyer-${mol.id}`);
+            const costSpan = document.getElementById(`autobuyer-cost-${mol.id}`);
+
+            if (unlockBtn && toggleBtn) {
+                if (game.unlockedMoleculeAutobuyers[mol.id]) {
+                    unlockBtn.classList.add("hidden");
+                    toggleBtn.classList.remove("hidden");
+
+                    if (game.moleculeAutobuyersActive[mol.id]) {
+                        toggleBtn.textContent = "ON";
+                        toggleBtn.classList.add("active-toggle");
+                        toggleBtn.classList.remove("inactive-toggle");
+                    } else {
+                        toggleBtn.textContent = "OFF";
+                        toggleBtn.classList.add("inactive-toggle");
+                        toggleBtn.classList.remove("active-toggle");
+                    }
+                } else {
+                    unlockBtn.classList.remove("hidden");
+                    toggleBtn.classList.add("hidden");
+                    const cost = getAutobuyerCost();
+                    if (costSpan) costSpan.textContent = formatNumber(cost);
+                    unlockBtn.disabled = game.backgroundRadiation < cost;
+                }
+            }
 
             // Update bonus displays
             if(bonusSpan) {
@@ -2251,6 +3261,33 @@ function updateUI() {
     } else {
         radDisplay.classList.add("hidden");
     }
+
+    // Update Statistics UI
+    // Format Time Played
+    let timeStr = "0s";
+    if (game.stats.timePlayedSeconds > 0) {
+        const secs = Math.floor(game.stats.timePlayedSeconds);
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        timeStr = "";
+        if (h > 0) timeStr += `${h}h `;
+        if (m > 0 || h > 0) timeStr += `${m}m `;
+        timeStr += `${s}s`;
+    }
+
+    document.getElementById("stat-time-played").textContent = timeStr;
+    document.getElementById("stat-total-quarks").textContent = formatNumber(game.stats.totalQuarksEver);
+    document.getElementById("stat-total-weight").textContent = formatNumber(game.stats.totalWeightProduced);
+    document.getElementById("stat-prestige-count").textContent = formatNumber(game.prestigeCount);
+
+    document.getElementById("stat-elements-discovered").textContent = `${unlockedElementsCount}/118`;
+
+    let molDisc = 0;
+    for (let id in game.discoveredMolecules) {
+        if (game.discoveredMolecules[id]) molDisc++;
+    }
+    document.getElementById("stat-molecules-discovered").textContent = `${molDisc}/${MOLECULES.length}`;
 }
 
 // Zoom Logic for Periodic Table
@@ -2397,7 +3434,15 @@ document.getElementById("btn-fullscreen-pt").addEventListener("click", () => {
     applyModalTransform();
 });
 document.getElementById("btn-close-pt").addEventListener("click", () => {
-    document.getElementById("pt-modal").classList.add("hidden");
+    const modal = document.getElementById("pt-modal");
+    modal.classList.add("hidden");
+
+    // Clear selection mode if it was active
+    modal.removeAttribute("data-selecting-for-slot");
+    const modalGrid = document.getElementById("modal-periodic-grid");
+    if (modalGrid) {
+        modalGrid.classList.remove("selection-mode");
+    }
 });
 
 

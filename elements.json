@@ -1,709 +1,1063 @@
 [
     {
         "id": 1,
-        "name": "Hydrogen",
+        "name": {
+            "en": "Hydrogen",
+            "cz": "Vodík"
+        },
         "symbol": "H",
         "baseCost": 1
     },
     {
         "id": 2,
-        "name": "Helium",
+        "name": {
+            "en": "Helium",
+            "cz": "Helium"
+        },
         "symbol": "He",
         "mergeReq": 6
     },
     {
         "id": 3,
-        "name": "Lithium",
+        "name": {
+            "en": "Lithium",
+            "cz": "Lithium"
+        },
         "symbol": "Li",
         "mergeReq": 2
     },
     {
         "id": 4,
-        "name": "Beryllium",
+        "name": {
+            "en": "Beryllium",
+            "cz": "Beryllium"
+        },
         "symbol": "Be",
         "mergeReq": 3
     },
     {
         "id": 5,
-        "name": "Boron",
+        "name": {
+            "en": "Boron",
+            "cz": "Bór"
+        },
         "symbol": "B",
         "mergeReq": 4
     },
     {
         "id": 6,
-        "name": "Carbon",
+        "name": {
+            "en": "Carbon",
+            "cz": "Uhlík"
+        },
         "symbol": "C",
         "mergeReq": 4
     },
     {
         "id": 7,
-        "name": "Nitrogen",
+        "name": {
+            "en": "Nitrogen",
+            "cz": "Dusík"
+        },
         "symbol": "N",
         "mergeReq": 5
     },
     {
         "id": 8,
-        "name": "Oxygen",
+        "name": {
+            "en": "Oxygen",
+            "cz": "Kyslík"
+        },
         "symbol": "O",
         "mergeReq": 5
     },
     {
         "id": 9,
-        "name": "Fluorine",
+        "name": {
+            "en": "Fluorine",
+            "cz": "Fluor"
+        },
         "symbol": "F",
         "mergeReq": 5
     },
     {
         "id": 10,
-        "name": "Neon",
+        "name": {
+            "en": "Neon",
+            "cz": "Neon"
+        },
         "symbol": "Ne",
         "mergeReq": 6
     },
     {
         "id": 11,
-        "name": "Sodium",
+        "name": {
+            "en": "Sodium",
+            "cz": "Sodík"
+        },
         "symbol": "Na",
         "mergeReq": 2
     },
     {
         "id": 12,
-        "name": "Magnesium",
+        "name": {
+            "en": "Magnesium",
+            "cz": "Hořčík"
+        },
         "symbol": "Mg",
         "mergeReq": 3
     },
     {
         "id": 13,
-        "name": "Aluminum",
+        "name": {
+            "en": "Aluminum",
+            "cz": "Hliník"
+        },
         "symbol": "Al",
         "mergeReq": 3
     },
     {
         "id": 14,
-        "name": "Silicon",
+        "name": {
+            "en": "Silicon",
+            "cz": "Křemík"
+        },
         "symbol": "Si",
         "mergeReq": 4
     },
     {
         "id": 15,
-        "name": "Phosphorus",
+        "name": {
+            "en": "Phosphorus",
+            "cz": "Fosfor"
+        },
         "symbol": "P",
         "mergeReq": 5
     },
     {
         "id": 16,
-        "name": "Sulfur",
+        "name": {
+            "en": "Sulfur",
+            "cz": "Síra"
+        },
         "symbol": "S",
         "mergeReq": 5
     },
     {
         "id": 17,
-        "name": "Chlorine",
+        "name": {
+            "en": "Chlorine",
+            "cz": "Chlor"
+        },
         "symbol": "Cl",
         "mergeReq": 5
     },
     {
         "id": 18,
-        "name": "Argon",
+        "name": {
+            "en": "Argon",
+            "cz": "Argon"
+        },
         "symbol": "Ar",
         "mergeReq": 6
     },
     {
         "id": 19,
-        "name": "Potassium",
+        "name": {
+            "en": "Potassium",
+            "cz": "Draslík"
+        },
         "symbol": "K",
         "mergeReq": 2
     },
     {
         "id": 20,
-        "name": "Calcium",
+        "name": {
+            "en": "Calcium",
+            "cz": "Vápník"
+        },
         "symbol": "Ca",
         "mergeReq": 3
     },
     {
         "id": 21,
-        "name": "Scandium",
+        "name": {
+            "en": "Scandium",
+            "cz": "Skandium"
+        },
         "symbol": "Sc",
         "mergeReq": 4
     },
     {
         "id": 22,
-        "name": "Titanium",
+        "name": {
+            "en": "Titanium",
+            "cz": "Titan"
+        },
         "symbol": "Ti",
         "mergeReq": 4
     },
     {
         "id": 23,
-        "name": "Vanadium",
+        "name": {
+            "en": "Vanadium",
+            "cz": "Vanad"
+        },
         "symbol": "V",
         "mergeReq": 4
     },
     {
         "id": 24,
-        "name": "Chromium",
+        "name": {
+            "en": "Chromium",
+            "cz": "Chrom"
+        },
         "symbol": "Cr",
         "mergeReq": 4
     },
     {
         "id": 25,
-        "name": "Manganese",
+        "name": {
+            "en": "Manganese",
+            "cz": "Mangan"
+        },
         "symbol": "Mn",
         "mergeReq": 4
     },
     {
         "id": 26,
-        "name": "Iron",
+        "name": {
+            "en": "Iron",
+            "cz": "Železo"
+        },
         "symbol": "Fe",
         "mergeReq": 4
     },
     {
         "id": 27,
-        "name": "Cobalt",
+        "name": {
+            "en": "Cobalt",
+            "cz": "Kobalt"
+        },
         "symbol": "Co",
         "mergeReq": 4
     },
     {
         "id": 28,
-        "name": "Nickel",
+        "name": {
+            "en": "Nickel",
+            "cz": "Nikl"
+        },
         "symbol": "Ni",
         "mergeReq": 4
     },
     {
         "id": 29,
-        "name": "Copper",
+        "name": {
+            "en": "Copper",
+            "cz": "Měď"
+        },
         "symbol": "Cu",
         "mergeReq": 4
     },
     {
         "id": 30,
-        "name": "Zinc",
+        "name": {
+            "en": "Zinc",
+            "cz": "Zinek"
+        },
         "symbol": "Zn",
         "mergeReq": 4
     },
     {
         "id": 31,
-        "name": "Gallium",
+        "name": {
+            "en": "Gallium",
+            "cz": "Gallium"
+        },
         "symbol": "Ga",
         "mergeReq": 3
     },
     {
         "id": 32,
-        "name": "Germanium",
+        "name": {
+            "en": "Germanium",
+            "cz": "Germanium"
+        },
         "symbol": "Ge",
         "mergeReq": 4
     },
     {
         "id": 33,
-        "name": "Arsenic",
+        "name": {
+            "en": "Arsenic",
+            "cz": "Arsen"
+        },
         "symbol": "As",
         "mergeReq": 5
     },
     {
         "id": 34,
-        "name": "Selenium",
+        "name": {
+            "en": "Selenium",
+            "cz": "Selen"
+        },
         "symbol": "Se",
         "mergeReq": 5
     },
     {
         "id": 35,
-        "name": "Bromine",
+        "name": {
+            "en": "Bromine",
+            "cz": "Brom"
+        },
         "symbol": "Br",
         "mergeReq": 5
     },
     {
         "id": 36,
-        "name": "Krypton",
+        "name": {
+            "en": "Krypton",
+            "cz": "Krypton"
+        },
         "symbol": "Kr",
         "mergeReq": 6
     },
     {
         "id": 37,
-        "name": "Rubidium",
+        "name": {
+            "en": "Rubidium",
+            "cz": "Rubidium"
+        },
         "symbol": "Rb",
         "mergeReq": 2
     },
     {
         "id": 38,
-        "name": "Strontium",
+        "name": {
+            "en": "Strontium",
+            "cz": "Stroncium"
+        },
         "symbol": "Sr",
         "mergeReq": 3
     },
     {
         "id": 39,
-        "name": "Yttrium",
+        "name": {
+            "en": "Yttrium",
+            "cz": "Yttrium"
+        },
         "symbol": "Y",
         "mergeReq": 4
     },
     {
         "id": 40,
-        "name": "Zirconium",
+        "name": {
+            "en": "Zirconium",
+            "cz": "Zirkonium"
+        },
         "symbol": "Zr",
         "mergeReq": 4
     },
     {
         "id": 41,
-        "name": "Niobium",
+        "name": {
+            "en": "Niobium",
+            "cz": "Niob"
+        },
         "symbol": "Nb",
         "mergeReq": 4
     },
     {
         "id": 42,
-        "name": "Molybdenum",
+        "name": {
+            "en": "Molybdenum",
+            "cz": "Molybden"
+        },
         "symbol": "Mo",
         "mergeReq": 4
     },
     {
         "id": 43,
-        "name": "Technetium",
+        "name": {
+            "en": "Technetium",
+            "cz": "Technecium"
+        },
         "symbol": "Tc",
         "mergeReq": 4
     },
     {
         "id": 44,
-        "name": "Ruthenium",
+        "name": {
+            "en": "Ruthenium",
+            "cz": "Ruthenium"
+        },
         "symbol": "Ru",
         "mergeReq": 4
     },
     {
         "id": 45,
-        "name": "Rhodium",
+        "name": {
+            "en": "Rhodium",
+            "cz": "Rhodium"
+        },
         "symbol": "Rh",
         "mergeReq": 4
     },
     {
         "id": 46,
-        "name": "Palladium",
+        "name": {
+            "en": "Palladium",
+            "cz": "Palladium"
+        },
         "symbol": "Pd",
         "mergeReq": 4
     },
     {
         "id": 47,
-        "name": "Silver",
+        "name": {
+            "en": "Silver",
+            "cz": "Stříbro"
+        },
         "symbol": "Ag",
         "mergeReq": 4
     },
     {
         "id": 48,
-        "name": "Cadmium",
+        "name": {
+            "en": "Cadmium",
+            "cz": "Kadmium"
+        },
         "symbol": "Cd",
         "mergeReq": 4
     },
     {
         "id": 49,
-        "name": "Indium",
+        "name": {
+            "en": "Indium",
+            "cz": "Indium"
+        },
         "symbol": "In",
         "mergeReq": 3
     },
     {
         "id": 50,
-        "name": "Tin",
+        "name": {
+            "en": "Tin",
+            "cz": "Cín"
+        },
         "symbol": "Sn",
         "mergeReq": 4
     },
     {
         "id": 51,
-        "name": "Antimony",
+        "name": {
+            "en": "Antimony",
+            "cz": "Antimon"
+        },
         "symbol": "Sb",
         "mergeReq": 5
     },
     {
         "id": 52,
-        "name": "Tellurium",
+        "name": {
+            "en": "Tellurium",
+            "cz": "Tellur"
+        },
         "symbol": "Te",
         "mergeReq": 5
     },
     {
         "id": 53,
-        "name": "Iodine",
+        "name": {
+            "en": "Iodine",
+            "cz": "Jod"
+        },
         "symbol": "I",
         "mergeReq": 5
     },
     {
         "id": 54,
-        "name": "Xenon",
+        "name": {
+            "en": "Xenon",
+            "cz": "Xenon"
+        },
         "symbol": "Xe",
         "mergeReq": 6
     },
     {
         "id": 55,
-        "name": "Cesium",
+        "name": {
+            "en": "Cesium",
+            "cz": "Cesium"
+        },
         "symbol": "Cs",
         "mergeReq": 2
     },
     {
         "id": 56,
-        "name": "Barium",
+        "name": {
+            "en": "Barium",
+            "cz": "Baryum"
+        },
         "symbol": "Ba",
         "mergeReq": 3
     },
     {
         "id": 57,
-        "name": "Lanthanum",
+        "name": {
+            "en": "Lanthanum",
+            "cz": "Lanthan"
+        },
         "symbol": "La",
         "mergeReq": 4
     },
     {
         "id": 58,
-        "name": "Cerium",
+        "name": {
+            "en": "Cerium",
+            "cz": "Cer"
+        },
         "symbol": "Ce",
         "mergeReq": 4
     },
     {
         "id": 59,
-        "name": "Praseodymium",
+        "name": {
+            "en": "Praseodymium",
+            "cz": "Praseodym"
+        },
         "symbol": "Pr",
         "mergeReq": 4
     },
     {
         "id": 60,
-        "name": "Neodymium",
+        "name": {
+            "en": "Neodymium",
+            "cz": "Neodym"
+        },
         "symbol": "Nd",
         "mergeReq": 4
     },
     {
         "id": 61,
-        "name": "Promethium",
+        "name": {
+            "en": "Promethium",
+            "cz": "Promethium"
+        },
         "symbol": "Pm",
         "mergeReq": 4
     },
     {
         "id": 62,
-        "name": "Samarium",
+        "name": {
+            "en": "Samarium",
+            "cz": "Samarium"
+        },
         "symbol": "Sm",
         "mergeReq": 4
     },
     {
         "id": 63,
-        "name": "Europium",
+        "name": {
+            "en": "Europium",
+            "cz": "Europium"
+        },
         "symbol": "Eu",
         "mergeReq": 4
     },
     {
         "id": 64,
-        "name": "Gadolinium",
+        "name": {
+            "en": "Gadolinium",
+            "cz": "Gadolinium"
+        },
         "symbol": "Gd",
         "mergeReq": 4
     },
     {
         "id": 65,
-        "name": "Terbium",
+        "name": {
+            "en": "Terbium",
+            "cz": "Terbium"
+        },
         "symbol": "Tb",
         "mergeReq": 4
     },
     {
         "id": 66,
-        "name": "Dysprosium",
+        "name": {
+            "en": "Dysprosium",
+            "cz": "Dysprosium"
+        },
         "symbol": "Dy",
         "mergeReq": 4
     },
     {
         "id": 67,
-        "name": "Holmium",
+        "name": {
+            "en": "Holmium",
+            "cz": "Holmium"
+        },
         "symbol": "Ho",
         "mergeReq": 4
     },
     {
         "id": 68,
-        "name": "Erbium",
+        "name": {
+            "en": "Erbium",
+            "cz": "Erbium"
+        },
         "symbol": "Er",
         "mergeReq": 4
     },
     {
         "id": 69,
-        "name": "Thulium",
+        "name": {
+            "en": "Thulium",
+            "cz": "Thulium"
+        },
         "symbol": "Tm",
         "mergeReq": 4
     },
     {
         "id": 70,
-        "name": "Ytterbium",
+        "name": {
+            "en": "Ytterbium",
+            "cz": "Ytterbium"
+        },
         "symbol": "Yb",
         "mergeReq": 4
     },
     {
         "id": 71,
-        "name": "Lutetium",
+        "name": {
+            "en": "Lutetium",
+            "cz": "Lutecium"
+        },
         "symbol": "Lu",
         "mergeReq": 4
     },
     {
         "id": 72,
-        "name": "Hafnium",
+        "name": {
+            "en": "Hafnium",
+            "cz": "Hafnium"
+        },
         "symbol": "Hf",
         "mergeReq": 4
     },
     {
         "id": 73,
-        "name": "Tantalum",
+        "name": {
+            "en": "Tantalum",
+            "cz": "Tantal"
+        },
         "symbol": "Ta",
         "mergeReq": 4
     },
     {
         "id": 74,
-        "name": "Tungsten",
+        "name": {
+            "en": "Tungsten",
+            "cz": "Wolfram"
+        },
         "symbol": "W",
         "mergeReq": 4
     },
     {
         "id": 75,
-        "name": "Rhenium",
+        "name": {
+            "en": "Rhenium",
+            "cz": "Rhenium"
+        },
         "symbol": "Re",
         "mergeReq": 4
     },
     {
         "id": 76,
-        "name": "Osmium",
+        "name": {
+            "en": "Osmium",
+            "cz": "Osmium"
+        },
         "symbol": "Os",
         "mergeReq": 4
     },
     {
         "id": 77,
-        "name": "Iridium",
+        "name": {
+            "en": "Iridium",
+            "cz": "Iridium"
+        },
         "symbol": "Ir",
         "mergeReq": 4
     },
     {
         "id": 78,
-        "name": "Platinum",
+        "name": {
+            "en": "Platinum",
+            "cz": "Platina"
+        },
         "symbol": "Pt",
         "mergeReq": 4
     },
     {
         "id": 79,
-        "name": "Gold",
+        "name": {
+            "en": "Gold",
+            "cz": "Zlato"
+        },
         "symbol": "Au",
         "mergeReq": 4
     },
     {
         "id": 80,
-        "name": "Mercury",
+        "name": {
+            "en": "Mercury",
+            "cz": "Rtuť"
+        },
         "symbol": "Hg",
         "mergeReq": 4
     },
     {
         "id": 81,
-        "name": "Thallium",
+        "name": {
+            "en": "Thallium",
+            "cz": "Thallium"
+        },
         "symbol": "Tl",
         "mergeReq": 3
     },
     {
         "id": 82,
-        "name": "Lead",
+        "name": {
+            "en": "Lead",
+            "cz": "Olovo"
+        },
         "symbol": "Pb",
         "mergeReq": 4
     },
     {
         "id": 83,
-        "name": "Bismuth",
+        "name": {
+            "en": "Bismuth",
+            "cz": "Bismut"
+        },
         "symbol": "Bi",
         "mergeReq": 5
     },
     {
         "id": 84,
-        "name": "Polonium",
+        "name": {
+            "en": "Polonium",
+            "cz": "Polonium"
+        },
         "symbol": "Po",
         "mergeReq": 5
     },
     {
         "id": 85,
-        "name": "Astatine",
+        "name": {
+            "en": "Astatine",
+            "cz": "Astat"
+        },
         "symbol": "At",
         "mergeReq": 5
     },
     {
         "id": 86,
-        "name": "Radon",
+        "name": {
+            "en": "Radon",
+            "cz": "Radon"
+        },
         "symbol": "Rn",
         "mergeReq": 6
     },
     {
         "id": 87,
-        "name": "Francium",
+        "name": {
+            "en": "Francium",
+            "cz": "Francium"
+        },
         "symbol": "Fr",
         "mergeReq": 2
     },
     {
         "id": 88,
-        "name": "Radium",
+        "name": {
+            "en": "Radium",
+            "cz": "Radium"
+        },
         "symbol": "Ra",
         "mergeReq": 3
     },
     {
         "id": 89,
-        "name": "Actinium",
+        "name": {
+            "en": "Actinium",
+            "cz": "Aktinium"
+        },
         "symbol": "Ac",
         "mergeReq": 4
     },
     {
         "id": 90,
-        "name": "Thorium",
+        "name": {
+            "en": "Thorium",
+            "cz": "Thorium"
+        },
         "symbol": "Th",
         "mergeReq": 4
     },
     {
         "id": 91,
-        "name": "Protactinium",
+        "name": {
+            "en": "Protactinium",
+            "cz": "Protaktinium"
+        },
         "symbol": "Pa",
         "mergeReq": 4
     },
     {
         "id": 92,
-        "name": "Uranium",
+        "name": {
+            "en": "Uranium",
+            "cz": "Uran"
+        },
         "symbol": "U",
         "mergeReq": 4
     },
     {
         "id": 93,
-        "name": "Neptunium",
+        "name": {
+            "en": "Neptunium",
+            "cz": "Neptunium"
+        },
         "symbol": "Np",
         "mergeReq": 4
     },
     {
         "id": 94,
-        "name": "Plutonium",
+        "name": {
+            "en": "Plutonium",
+            "cz": "Plutonium"
+        },
         "symbol": "Pu",
         "mergeReq": 4
     },
     {
         "id": 95,
-        "name": "Americium",
+        "name": {
+            "en": "Americium",
+            "cz": "Americium"
+        },
         "symbol": "Am",
         "mergeReq": 4
     },
     {
         "id": 96,
-        "name": "Curium",
+        "name": {
+            "en": "Curium",
+            "cz": "Curium"
+        },
         "symbol": "Cm",
         "mergeReq": 4
     },
     {
         "id": 97,
-        "name": "Berkelium",
+        "name": {
+            "en": "Berkelium",
+            "cz": "Berkelium"
+        },
         "symbol": "Bk",
         "mergeReq": 4
     },
     {
         "id": 98,
-        "name": "Californium",
+        "name": {
+            "en": "Californium",
+            "cz": "Kalifornium"
+        },
         "symbol": "Cf",
         "mergeReq": 4
     },
     {
         "id": 99,
-        "name": "Einsteinium",
+        "name": {
+            "en": "Einsteinium",
+            "cz": "Einsteinium"
+        },
         "symbol": "Es",
         "mergeReq": 4
     },
     {
         "id": 100,
-        "name": "Fermium",
+        "name": {
+            "en": "Fermium",
+            "cz": "Fermium"
+        },
         "symbol": "Fm",
         "mergeReq": 4
     },
     {
         "id": 101,
-        "name": "Mendelevium",
+        "name": {
+            "en": "Mendelevium",
+            "cz": "Mendelevium"
+        },
         "symbol": "Md",
         "mergeReq": 4
     },
     {
         "id": 102,
-        "name": "Nobelium",
+        "name": {
+            "en": "Nobelium",
+            "cz": "Nobelium"
+        },
         "symbol": "No",
         "mergeReq": 4
     },
     {
         "id": 103,
-        "name": "Lawrencium",
+        "name": {
+            "en": "Lawrencium",
+            "cz": "Lawrencium"
+        },
         "symbol": "Lr",
         "mergeReq": 4
     },
     {
         "id": 104,
-        "name": "Rutherfordium",
+        "name": {
+            "en": "Rutherfordium",
+            "cz": "Rutherfordium"
+        },
         "symbol": "Rf",
         "mergeReq": 4
     },
     {
         "id": 105,
-        "name": "Dubnium",
+        "name": {
+            "en": "Dubnium",
+            "cz": "Dubnium"
+        },
         "symbol": "Db",
         "mergeReq": 4
     },
     {
         "id": 106,
-        "name": "Seaborgium",
+        "name": {
+            "en": "Seaborgium",
+            "cz": "Seaborgium"
+        },
         "symbol": "Sg",
         "mergeReq": 4
     },
     {
         "id": 107,
-        "name": "Bohrium",
+        "name": {
+            "en": "Bohrium",
+            "cz": "Bohrium"
+        },
         "symbol": "Bh",
         "mergeReq": 4
     },
     {
         "id": 108,
-        "name": "Hassium",
+        "name": {
+            "en": "Hassium",
+            "cz": "Hassium"
+        },
         "symbol": "Hs",
         "mergeReq": 4
     },
     {
         "id": 109,
-        "name": "Meitnerium",
+        "name": {
+            "en": "Meitnerium",
+            "cz": "Meitnerium"
+        },
         "symbol": "Mt",
         "mergeReq": 4
     },
     {
         "id": 110,
-        "name": "Darmstadtium",
+        "name": {
+            "en": "Darmstadtium",
+            "cz": "Darmstadtium"
+        },
         "symbol": "Ds",
         "mergeReq": 4
     },
     {
         "id": 111,
-        "name": "Roentgenium",
+        "name": {
+            "en": "Roentgenium",
+            "cz": "Roentgenium"
+        },
         "symbol": "Rg",
         "mergeReq": 4
     },
     {
         "id": 112,
-        "name": "Copernicium",
+        "name": {
+            "en": "Copernicium",
+            "cz": "Kopernicium"
+        },
         "symbol": "Cn",
         "mergeReq": 4
     },
     {
         "id": 113,
-        "name": "Nihonium",
+        "name": {
+            "en": "Nihonium",
+            "cz": "Nihonium"
+        },
         "symbol": "Nh",
         "mergeReq": 3
     },
     {
         "id": 114,
-        "name": "Flerovium",
+        "name": {
+            "en": "Flerovium",
+            "cz": "Flerovium"
+        },
         "symbol": "Fl",
         "mergeReq": 4
     },
     {
         "id": 115,
-        "name": "Moscovium",
+        "name": {
+            "en": "Moscovium",
+            "cz": "Moscovium"
+        },
         "symbol": "Mc",
         "mergeReq": 5
     },
     {
         "id": 116,
-        "name": "Livermorium",
+        "name": {
+            "en": "Livermorium",
+            "cz": "Livermorium"
+        },
         "symbol": "Lv",
         "mergeReq": 5
     },
     {
         "id": 117,
-        "name": "Tennessine",
+        "name": {
+            "en": "Tennessine",
+            "cz": "Tennessine"
+        },
         "symbol": "Ts",
         "mergeReq": 5
     },
     {
         "id": 118,
-        "name": "Oganesson",
+        "name": {
+            "en": "Oganesson",
+            "cz": "Oganesson"
+        },
         "symbol": "Og",
         "mergeReq": 6
     }
