@@ -166,75 +166,132 @@
 .deck { cursor: pointer; }
 .deck:hover { transform: translateY(-2px); }
 
-/* Cards */
+/* Cards - Czech Mariáš Style */
 .card {
     width: 100px;
     height: 140px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background-color: #f3ecd6; /* Parchment-like background */
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     position: absolute;
     top: 0;
     left: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between;
     user-select: none;
-    border: 2px solid #ccc;
+    border: 2px solid #8b7355; /* Traditional brownish border */
     transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+    font-family: "Times New Roman", Times, serif; /* Traditional serif font */
+}
+
+/* Internal card border to mimic print */
+.card::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    border: 1px solid rgba(139, 115, 85, 0.4);
+    border-radius: 4px;
+    pointer-events: none;
 }
 
 .card.playable {
     cursor: pointer;
-    box-shadow: 0 0 10px var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-color);
     border-color: var(--accent-color);
 }
 .card.playable:hover {
-    transform: translateY(-10px);
+    transform: translateY(-15px);
 }
 
 .card-back {
     background: repeating-linear-gradient(
         45deg,
-        #1e293b,
-        #1e293b 10px,
-        #0f172a 10px,
-        #0f172a 20px
+        #8b0000, /* Dark red traditional back */
+        #8b0000 10px,
+        #b22222 10px,
+        #b22222 20px
     );
-    border-color: #334155;
+    border-color: #5c0000;
+}
+.card-back::after {
+    border: 2px solid #fff; /* White inner border on back */
 }
 
-.card-top-left {
+/* Double-headed layout (Top half) */
+.card-half-top {
     position: absolute;
-    top: 5px;
-    left: 5px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    font-size: 1.1rem;
-    font-weight: bold;
+    justify-content: center;
+    border-bottom: 1px solid rgba(139, 115, 85, 0.3);
 }
-.card-center {
-    font-size: 3rem;
-}
-.card-bottom-right {
+
+/* Double-headed layout (Bottom half - inverted) */
+.card-half-bottom {
     position: absolute;
-    bottom: 5px;
-    right: 5px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    font-size: 1.1rem;
-    font-weight: bold;
+    justify-content: center;
     transform: rotate(180deg);
 }
 
+/* Value display (e.g. VII, VIII, X) */
+.card-value {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    z-index: 2;
+}
+
+/* Suit display (top right) */
+.card-suit {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 1.4rem;
+    z-index: 2;
+}
+
+/* Svršek/Spodek specific positioning */
+.svrsek .card-suit { top: 6px; right: 8px; } /* Suit at top */
+.spodek .card-suit { top: 35px; right: 8px; } /* Suit lower down */
+
+/* Center graphic/text for face cards */
+.card-center-graphic {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+.card-name {
+    position: absolute;
+    bottom: 5px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(0,0,0,0.6);
+}
+
 /* Colors for Czech Suits */
-.suit-hearts { color: #ef4444; } /* Red */
-.suit-bells { color: #eab308; } /* Yellow/Gold */
-.suit-acorns { color: #8b5cf6; } /* Purple/Brownish representation */
-.suit-leaves { color: #22c55e; } /* Green */
+.suit-hearts { color: #cc0000; } /* Červený */
+.suit-bells { color: #d4af37; text-shadow: 0 0 2px #000; } /* Kule (Gold/Yellow with outline) */
+.suit-acorns { color: #8b4513; } /* Žaludy (Brown) */
+.suit-leaves { color: #2e8b57; } /* Zelený (Green) */
 
 /* Hand */
 .hand {

@@ -55,7 +55,7 @@ const SUIT_SYMBOLS = {
 };
 
 const RANK_LABELS = {
-    '7': '7', '8': '8', '9': '9', '10': '10',
+    '7': 'VII', '8': 'VIII', '9': 'IX', '10': 'X',
     'J': 'Spodek', 'Q': 'Svršek', 'K': 'Král', 'A': 'Eso'
 };
 
@@ -210,14 +210,39 @@ function renderGame() {
 
 function createCardElement(card) {
     const el = document.createElement('div');
-    el.className = `card suit-${card.suit}`;
+
+    // Add specific classes for Spodek/Svršek styling
+    let specialClass = '';
+    if (card.rank === 'J') specialClass = 'spodek';
+    if (card.rank === 'Q') specialClass = 'svrsek';
+
+    el.className = `card suit-${card.suit} ${specialClass}`;
+
     const symbol = SUIT_SYMBOLS[card.suit];
-    const rankLabel = card.rank; // Keep standard letters for UI
+    const rankLabel = RANK_LABELS[card.rank];
+
+    let centerGraphic = symbol;
+    if (card.rank === 'A') centerGraphic = '🦅'; // Eagle or shield for Ace
+    if (card.rank === 'K') centerGraphic = '👑'; // Crown for King
+    if (card.rank === 'Q' || card.rank === 'J') centerGraphic = '⚔️'; // Weapons/knights
+    if (card.rank === '7' || card.rank === '8' || card.rank === '9' || card.rank === '10') {
+        // Number cards show multiple symbols traditionally, but we'll stick to a big one
+        centerGraphic = symbol;
+    }
 
     el.innerHTML = `
-        <div class="card-top-left"><span>${rankLabel}</span><span>${symbol}</span></div>
-        <div class="card-center">${symbol}</div>
-        <div class="card-bottom-right"><span>${rankLabel}</span><span>${symbol}</span></div>
+        <div class="card-half-top">
+            <span class="card-value">${['7','8','9','10'].includes(card.rank) ? rankLabel : ''}</span>
+            <span class="card-suit">${symbol}</span>
+            <div class="card-center-graphic">${centerGraphic}</div>
+            <span class="card-name">${['J','Q','K','A'].includes(card.rank) ? rankLabel : ''}</span>
+        </div>
+        <div class="card-half-bottom">
+            <span class="card-value">${['7','8','9','10'].includes(card.rank) ? rankLabel : ''}</span>
+            <span class="card-suit">${symbol}</span>
+            <div class="card-center-graphic">${centerGraphic}</div>
+            <span class="card-name">${['J','Q','K','A'].includes(card.rank) ? rankLabel : ''}</span>
+        </div>
     `;
     return el;
 }
