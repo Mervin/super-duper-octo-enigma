@@ -40,6 +40,23 @@ function createDeck() {
 }
 
 function initGame() {
+    // Clear fireworks and animation if restarting after win
+    if (fireworkIntervalId) {
+        clearInterval(fireworkIntervalId);
+        fireworkIntervalId = null;
+    }
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+    if (fwAnimationFrameId) {
+        cancelAnimationFrame(fwAnimationFrameId);
+        fwAnimationFrameId = null;
+    }
+
+    const canvas = document.getElementById('fireworks-canvas');
+    if (canvas) canvas.style.display = 'none';
+
     createDeck();
     state.stock = []; state.waste = [];
     state.foundations = [[], [], [], []];
@@ -86,9 +103,10 @@ function renderAll() {
         const fPile = document.getElementById(`f${i}`);
         fPile.dataset.pileType = 'foundation';
         fPile.dataset.pileIdx = i;
-        if (state.foundations[i].length > 0) {
-            let cardEl = createCardEl(state.foundations[i][state.foundations[i].length-1]);
+        for (let j=0; j<state.foundations[i].length; j++) {
+            let cardEl = createCardEl(state.foundations[i][j]);
             cardEl.style.left = '0px'; cardEl.style.top = '0px';
+            cardEl.style.zIndex = j;
             fPile.appendChild(cardEl);
         }
     }
@@ -117,11 +135,62 @@ function renderAll() {
 function createCardEl(card) {
     const el = document.createElement('div');
     el.className = `card ${card.faceUp ? card.color : 'back'}`;
-    el.innerHTML = card.faceUp ? `<div class="card-content">${card.value}<br>${card.suit}</div>` : '';
-    el.dataset.id = card.id;
+
     if (card.faceUp) {
+        let centerContent = '';
+        if (card.value === 'A') {
+            centerContent = `<div class="card-center ace">${card.suit}</div>`;
+        } else if (card.value === 'J') {
+            centerContent = `<div class="card-center face">💂</div>`;
+        } else if (card.value === 'Q') {
+            centerContent = `<div class="card-center face">👸</div>`;
+        } else if (card.value === 'K') {
+            centerContent = `<div class="card-center face">🤴</div>`;
+        } else {
+            // Number cards
+            let num = parseInt(card.value);
+            let symbols = '';
+
+            // Standard placement percentages [left, top, flipped?]
+            const layouts = {
+                2: [[50, 15, false], [50, 85, true]],
+                3: [[50, 15, false], [50, 50, false], [50, 85, true]],
+                4: [[25, 15, false], [75, 15, false], [25, 85, true], [75, 85, true]],
+                5: [[25, 15, false], [75, 15, false], [50, 50, false], [25, 85, true], [75, 85, true]],
+                6: [[25, 15, false], [75, 15, false], [25, 50, false], [75, 50, false], [25, 85, true], [75, 85, true]],
+                7: [[25, 15, false], [75, 15, false], [50, 32.5, false], [25, 50, false], [75, 50, false], [25, 85, true], [75, 85, true]],
+                8: [[25, 15, false], [75, 15, false], [50, 32.5, false], [25, 50, false], [75, 50, false], [50, 67.5, true], [25, 85, true], [75, 85, true]],
+                9: [[25, 15, false], [75, 15, false], [25, 38, false], [75, 38, false], [50, 50, false], [25, 62, true], [75, 62, true], [25, 85, true], [75, 85, true]],
+                10: [[25, 15, false], [75, 15, false], [50, 26, false], [25, 38, false], [75, 38, false], [25, 62, true], [75, 62, true], [50, 74, true], [25, 85, true], [75, 85, true]]
+            };
+
+            let layout = layouts[num] || [];
+            for(let pos of layout) {
+                let flipClass = pos[2] ? 'flipped' : '';
+                symbols += `<div class="sym ${flipClass}" style="left: ${pos[0]}%; top: ${pos[1]}%;">${card.suit}</div>`;
+            }
+
+            centerContent = `<div class="card-center symbols">${symbols}</div>`;
+        }
+
+        el.innerHTML = `
+            <div class="card-content">
+                <div class="card-corner top">
+                    <div>${card.value}</div>
+                    <div>${card.suit}</div>
+                </div>
+                ${centerContent}
+                <div class="card-corner bottom">
+                    <div>${card.value}</div>
+                    <div>${card.suit}</div>
+                </div>
+            </div>
+        `;
         el.draggable = true;
+    } else {
+        el.innerHTML = '';
     }
+    el.dataset.id = card.id;
     return el;
 }
 
@@ -338,6 +407,7 @@ function checkWinCondition() {
     }
     if (win) {
         triggerWinAnimation();
+        startFireworks();
     }
 }
 
@@ -434,6 +504,106 @@ function animationLoop() {
     }
 
     animationFrameId = requestAnimationFrame(animationLoop);
+}
+
+// Fireworks implementation
+let fwCanvas, fwCtx, particles = [];
+let fireworkIntervalId = null;
+let fwAnimationFrameId = null;
+
+function startFireworks() {
+    fwCanvas = document.getElementById('fireworks-canvas');
+    fwCtx = fwCanvas.getContext('2d');
+    fwCanvas.width = window.innerWidth;
+    fwCanvas.height = window.innerHeight;
+    fwCanvas.style.display = 'block';
+
+    // Clear particles on start
+    particles = [];
+
+    window.addEventListener('resize', () => {
+        if(fwCanvas) {
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+        }
+    });
+
+    fireworksLoop();
+    fireworkIntervalId = setInterval(createFirework, 800);
+}
+
+function createFirework() {
+    const x = Math.random() * fwCanvas.width;
+    const y = fwCanvas.height;
+    const targetY = Math.random() * (fwCanvas.height / 2);
+    const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+
+    // Rocket particle
+    particles.push({
+        x: x,
+        y: y,
+        targetY: targetY,
+        vx: (Math.random() - 0.5) * 2,
+        vy: - (Math.random() * 5 + 8),
+        color: color,
+        type: 'rocket',
+        life: 1
+    });
+}
+
+function explode(x, y, color) {
+    for (let i = 0; i < 50; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            color: color,
+            type: 'spark',
+            life: 1,
+            decay: Math.random() * 0.02 + 0.015
+        });
+    }
+}
+
+function fireworksLoop() {
+    fwCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.type === 'rocket') {
+            if (p.vy >= 0 || p.y <= p.targetY) {
+                explode(p.x, p.y, p.color);
+                particles.splice(i, 1);
+            } else {
+                p.vy += 0.1; // gravity
+                fwCtx.beginPath();
+                fwCtx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                fwCtx.fillStyle = p.color;
+                fwCtx.fill();
+            }
+        } else {
+            p.vy += 0.05; // gravity for sparks
+            p.life -= p.decay;
+            if (p.life <= 0) {
+                particles.splice(i, 1);
+            } else {
+                fwCtx.beginPath();
+                fwCtx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+                fwCtx.fillStyle = p.color;
+                fwCtx.globalAlpha = p.life;
+                fwCtx.fill();
+                fwCtx.globalAlpha = 1;
+            }
+        }
+    }
+    fwAnimationFrameId = requestAnimationFrame(fireworksLoop);
 }
 
 initGame();
