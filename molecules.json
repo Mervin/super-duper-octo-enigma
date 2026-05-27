@@ -1,7 +1,10 @@
 [
     {
         "id": 1,
-        "name": "Diatomic Hydrogen",
+        "name": {
+            "en": "Diatomic Hydrogen",
+            "cz": "Dvouatomový vodík"
+        },
         "symbol": "H2",
         "reqs": {
             "1": 2
@@ -9,7 +12,10 @@
     },
     {
         "id": 2,
-        "name": "Water",
+        "name": {
+            "en": "Water",
+            "cz": "Voda"
+        },
         "symbol": "H2O",
         "reqs": {
             "1": 2,
@@ -18,7 +24,10 @@
     },
     {
         "id": 3,
-        "name": "Carbon Dioxide",
+        "name": {
+            "en": "Carbon Dioxide",
+            "cz": "Oxid uhličitý"
+        },
         "symbol": "CO2",
         "reqs": {
             "6": 1,
@@ -27,7 +36,10 @@
     },
     {
         "id": 4,
-        "name": "Methane",
+        "name": {
+            "en": "Methane",
+            "cz": "Metan"
+        },
         "symbol": "CH4",
         "reqs": {
             "6": 1,
@@ -36,7 +48,10 @@
     },
     {
         "id": 5,
-        "name": "Ammonia",
+        "name": {
+            "en": "Ammonia",
+            "cz": "Amoniak"
+        },
         "symbol": "NH3",
         "reqs": {
             "7": 1,
@@ -45,7 +60,10 @@
     },
     {
         "id": 6,
-        "name": "Sodium Chloride",
+        "name": {
+            "en": "Sodium Chloride",
+            "cz": "Chlorid sodný"
+        },
         "symbol": "NaCl",
         "reqs": {
             "11": 1,
@@ -54,7 +72,10 @@
     },
     {
         "id": 7,
-        "name": "Sulfuric Acid",
+        "name": {
+            "en": "Sulfuric Acid",
+            "cz": "Kyselina sírová"
+        },
         "symbol": "H2SO4",
         "reqs": {
             "1": 2,
@@ -64,7 +85,10 @@
     },
     {
         "id": 8,
-        "name": "Glucose",
+        "name": {
+            "en": "Glucose",
+            "cz": "Glukóza"
+        },
         "symbol": "C6H12O6",
         "reqs": {
             "6": 6,
@@ -74,7 +98,10 @@
     },
     {
         "id": 9,
-        "name": "Ozone",
+        "name": {
+            "en": "Ozone",
+            "cz": "Ozon"
+        },
         "symbol": "O3",
         "reqs": {
             "8": 3
@@ -82,7 +109,10 @@
     },
     {
         "id": 10,
-        "name": "Nitric Acid",
+        "name": {
+            "en": "Nitric Acid",
+            "cz": "Kyselina dusičná"
+        },
         "symbol": "HNO3",
         "reqs": {
             "1": 1,
@@ -92,7 +122,10 @@
     },
     {
         "id": 11,
-        "name": "Hydrochloric Acid",
+        "name": {
+            "en": "Hydrochloric Acid",
+            "cz": "Kyselina chlorovodíková"
+        },
         "symbol": "HCl",
         "reqs": {
             "1": 1,
@@ -101,7 +134,10 @@
     },
     {
         "id": 12,
-        "name": "Ethanol",
+        "name": {
+            "en": "Ethanol",
+            "cz": "Etanol"
+        },
         "symbol": "C2H5OH",
         "reqs": {
             "6": 2,
@@ -111,7 +147,10 @@
     },
     {
         "id": 13,
-        "name": "Benzene",
+        "name": {
+            "en": "Benzene",
+            "cz": "Benzen"
+        },
         "symbol": "C6H6",
         "reqs": {
             "6": 6,
@@ -120,7 +159,10 @@
     },
     {
         "id": 14,
-        "name": "Aspirin",
+        "name": {
+            "en": "Aspirin",
+            "cz": "Aspirin"
+        },
         "symbol": "C9H8O4",
         "reqs": {
             "6": 9,
@@ -130,7 +172,10 @@
     },
     {
         "id": 15,
-        "name": "Caffeine",
+        "name": {
+            "en": "Caffeine",
+            "cz": "Kofein"
+        },
         "symbol": "C8H10N4O2",
         "reqs": {
             "6": 8,
@@ -141,7 +186,135 @@
     },
     {
         "id": 16,
-        "name": "Calcium Carbonate",
+        "name": {
+            "en": "Adenosine Triphosphate (ATP)",
+            "cz": "Adenosintrifosfát (ATP)"
+        },
+        "symbol": "C10H16N5O13P3",
+        "reqs": {
+            "6": 10,
+            "1": 16,
+            "7": 5,
+            "8": 13,
+            "15": 3
+        }
+    },
+    {
+        "id": 17,
+        "name": {
+            "en": "Urea",
+            "cz": "Močovina"
+        },
+        "symbol": "CH4N2O",
+        "reqs": {
+            "6": 1,
+            "1": 4,
+            "7": 2,
+            "8": 1
+        }
+    },
+    {
+        "id": 18,
+        "name": {
+            "en": "Glycine",
+            "cz": "Glycin"
+        },
+        "symbol": "C2H5NO2",
+        "reqs": {
+            "6": 2,
+            "1": 5,
+            "7": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 19,
+        "name": {
+            "en": "Tryptophan",
+            "cz": "Tryptofan"
+        },
+        "symbol": "C11H12N2O2",
+        "reqs": {
+            "6": 11,
+            "1": 12,
+            "7": 2,
+            "8": 2
+        }
+    },
+    {
+        "id": 20,
+        "name": {
+            "en": "Adrenaline",
+            "cz": "Adrenalin"
+        },
+        "symbol": "C9H13NO3",
+        "reqs": {
+            "6": 9,
+            "1": 13,
+            "7": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 21,
+        "name": {
+            "en": "Dopamine",
+            "cz": "Dopamin"
+        },
+        "symbol": "C8H11NO2",
+        "reqs": {
+            "6": 8,
+            "1": 11,
+            "7": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 22,
+        "name": {
+            "en": "Serotonin",
+            "cz": "Serotonin"
+        },
+        "symbol": "C10H12N2O",
+        "reqs": {
+            "6": 10,
+            "1": 12,
+            "7": 2,
+            "8": 1
+        }
+    },
+    {
+        "id": 23,
+        "name": {
+            "en": "Cholesterol",
+            "cz": "Cholesterol"
+        },
+        "symbol": "C27H46O",
+        "reqs": {
+            "6": 27,
+            "1": 46,
+            "8": 1
+        }
+    },
+    {
+        "id": 24,
+        "name": {
+            "en": "Vitamin C",
+            "cz": "Vitamín C"
+        },
+        "symbol": "C6H8O6",
+        "reqs": {
+            "6": 6,
+            "1": 8,
+            "8": 6
+        }
+    },
+    {
+        "id": 25,
+        "name": {
+            "en": "Calcium Carbonate",
+            "cz": "Uhličitan vápenatý"
+        },
         "symbol": "CaCO3",
         "reqs": {
             "20": 1,
@@ -150,8 +323,11 @@
         }
     },
     {
-        "id": 17,
-        "name": "Potassium Nitrate",
+        "id": 26,
+        "name": {
+            "en": "Potassium Nitrate",
+            "cz": "Dusičnan draselný"
+        },
         "symbol": "KNO3",
         "reqs": {
             "19": 1,
@@ -160,8 +336,11 @@
         }
     },
     {
-        "id": 18,
-        "name": "Iron(III) Oxide",
+        "id": 27,
+        "name": {
+            "en": "Iron(III) Oxide",
+            "cz": "Oxid železitý"
+        },
         "symbol": "Fe2O3",
         "reqs": {
             "26": 2,
@@ -169,8 +348,11 @@
         }
     },
     {
-        "id": 19,
-        "name": "Phosphoric Acid",
+        "id": 28,
+        "name": {
+            "en": "Phosphoric Acid",
+            "cz": "Kyselina fosforečná"
+        },
         "symbol": "H3PO4",
         "reqs": {
             "1": 3,
@@ -179,8 +361,11 @@
         }
     },
     {
-        "id": 20,
-        "name": "Hydrogen Peroxide",
+        "id": 29,
+        "name": {
+            "en": "Hydrogen Peroxide",
+            "cz": "Peroxid vodíku"
+        },
         "symbol": "H2O2",
         "reqs": {
             "1": 2,
@@ -188,8 +373,11 @@
         }
     },
     {
-        "id": 21,
-        "name": "Sodium Hydroxide",
+        "id": 30,
+        "name": {
+            "en": "Sodium Hydroxide",
+            "cz": "Hydroxid sodný"
+        },
         "symbol": "NaOH",
         "reqs": {
             "11": 1,
@@ -198,8 +386,11 @@
         }
     },
     {
-        "id": 22,
-        "name": "Silver Nitrate",
+        "id": 31,
+        "name": {
+            "en": "Silver Nitrate",
+            "cz": "Dusičnan stříbrný"
+        },
         "symbol": "AgNO3",
         "reqs": {
             "47": 1,
@@ -208,8 +399,11 @@
         }
     },
     {
-        "id": 23,
-        "name": "Copper(II) Sulfate",
+        "id": 32,
+        "name": {
+            "en": "Copper(II) Sulfate",
+            "cz": "Síran měďnatý"
+        },
         "symbol": "CuSO4",
         "reqs": {
             "29": 1,
@@ -218,8 +412,11 @@
         }
     },
     {
-        "id": 24,
-        "name": "Zinc Oxide",
+        "id": 33,
+        "name": {
+            "en": "Zinc Oxide",
+            "cz": "Oxid zinečnatý"
+        },
         "symbol": "ZnO",
         "reqs": {
             "30": 1,
@@ -227,8 +424,11 @@
         }
     },
     {
-        "id": 25,
-        "name": "Titanium Dioxide",
+        "id": 34,
+        "name": {
+            "en": "Titanium Dioxide",
+            "cz": "Oxid titaničitý"
+        },
         "symbol": "TiO2",
         "reqs": {
             "22": 1,
@@ -236,8 +436,63 @@
         }
     },
     {
-        "id": 26,
-        "name": "Uranium Hexafluoride",
+        "id": 35,
+        "name": {
+            "en": "Lead(II) Sulfide",
+            "cz": "Sulfid olovnatý"
+        },
+        "symbol": "PbS",
+        "reqs": {
+            "82": 1,
+            "16": 1
+        }
+    },
+    {
+        "id": 36,
+        "name": {
+            "en": "Sodium Bicarbonate",
+            "cz": "Hydrogenuhličitan sodný"
+        },
+        "symbol": "NaHCO3",
+        "reqs": {
+            "11": 1,
+            "1": 1,
+            "6": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 37,
+        "name": {
+            "en": "Magnesium Sulfate",
+            "cz": "Síran hořečnatý"
+        },
+        "symbol": "MgSO4",
+        "reqs": {
+            "12": 1,
+            "16": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 38,
+        "name": {
+            "en": "Calcium Sulfate",
+            "cz": "Síran vápenatý"
+        },
+        "symbol": "CaSO4",
+        "reqs": {
+            "20": 1,
+            "16": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 39,
+        "name": {
+            "en": "Uranium Hexafluoride",
+            "cz": "Fluorid uranový"
+        },
         "symbol": "UF6",
         "reqs": {
             "92": 1,
@@ -245,12 +500,217 @@
         }
     },
     {
-        "id": 27,
-        "name": "Lead(II) Sulfide",
-        "symbol": "PbS",
+        "id": 40,
+        "name": {
+            "en": "Plutonium Dioxide",
+            "cz": "Oxid plutoničitý"
+        },
+        "symbol": "PuO2",
         "reqs": {
-            "82": 1,
-            "16": 1
+            "94": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 41,
+        "name": {
+            "en": "Tungsten Carbide",
+            "cz": "Karbid wolframu"
+        },
+        "symbol": "WC",
+        "reqs": {
+            "74": 1,
+            "6": 1
+        }
+    },
+    {
+        "id": 42,
+        "name": {
+            "en": "Silicon Dioxide",
+            "cz": "Oxid křemičitý"
+        },
+        "symbol": "SiO2",
+        "reqs": {
+            "14": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 43,
+        "name": {
+            "en": "Aluminum Oxide",
+            "cz": "Oxid hlinitý"
+        },
+        "symbol": "Al2O3",
+        "reqs": {
+            "13": 2,
+            "8": 3
+        }
+    },
+    {
+        "id": 44,
+        "name": {
+            "en": "Lithium Cobalt Oxide",
+            "cz": "Oxid lithno-kobaltitý"
+        },
+        "symbol": "LiCoO2",
+        "reqs": {
+            "3": 1,
+            "27": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 45,
+        "name": {
+            "en": "Gallium Arsenide",
+            "cz": "Arsenid gallitý"
+        },
+        "symbol": "GaAs",
+        "reqs": {
+            "31": 1,
+            "33": 1
+        }
+    },
+    {
+        "id": 46,
+        "name": {
+            "en": "Indium Tin Oxide",
+            "cz": "Oxid indito-cíničitý"
+        },
+        "symbol": "In2SnO4",
+        "reqs": {
+            "49": 2,
+            "50": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 47,
+        "name": {
+            "en": "Yttrium Barium Copper Oxide",
+            "cz": "Oxid yttrio-barnato-měďnatý"
+        },
+        "symbol": "YBa2Cu3O7",
+        "reqs": {
+            "39": 1,
+            "56": 2,
+            "29": 3,
+            "8": 7
+        }
+    },
+    {
+        "id": 48,
+        "name": {
+            "en": "Sulfur Hexafluoride",
+            "cz": "Fluorid sírový"
+        },
+        "symbol": "SF6",
+        "reqs": {
+            "16": 1,
+            "9": 6
+        }
+    },
+    {
+        "id": 49,
+        "name": {
+            "en": "Trinitrotoluene (TNT)",
+            "cz": "Trinitrotoluen (TNT)"
+        },
+        "symbol": "C7H5N3O6",
+        "reqs": {
+            "6": 7,
+            "1": 5,
+            "7": 3,
+            "8": 6
+        }
+    },
+    {
+        "id": 50,
+        "name": {
+            "en": "Nitroglycerin",
+            "cz": "Nitroglycerin"
+        },
+        "symbol": "C3H5N3O9",
+        "reqs": {
+            "6": 3,
+            "1": 5,
+            "7": 3,
+            "8": 9
+        }
+    },
+    {
+        "id": 51,
+        "name": {
+            "en": "Lysergic acid diethylamide (LSD)",
+            "cz": "Diethylamid kyseliny lysergové (LSD)"
+        },
+        "symbol": "C20H25N3O",
+        "reqs": {
+            "6": 20,
+            "1": 25,
+            "7": 3,
+            "8": 1
+        }
+    },
+    {
+        "id": 52,
+        "name": {
+            "en": "Buckyball",
+            "cz": "Fulleren"
+        },
+        "symbol": "C60",
+        "reqs": {
+            "6": 60
+        }
+    },
+    {
+        "id": 53,
+        "name": {
+            "en": "Cyanide",
+            "cz": "Kyanid"
+        },
+        "symbol": "CN",
+        "reqs": {
+            "6": 1,
+            "7": 1
+        }
+    },
+    {
+        "id": 54,
+        "name": {
+            "en": "Hydrazine",
+            "cz": "Hydrazin"
+        },
+        "symbol": "N2H4",
+        "reqs": {
+            "7": 2,
+            "1": 4
+        }
+    },
+    {
+        "id": 55,
+        "name": {
+            "en": "Heavy Water",
+            "cz": "Těžká voda"
+        },
+        "symbol": "D2O",
+        "reqs": {
+            "1": 2,
+            "8": 1
+        }
+    },
+    {
+        "id": 56,
+        "name": {
+            "en": "Formaldehyde",
+            "cz": "Formaldehyd"
+        },
+        "symbol": "CH2O",
+        "reqs": {
+            "6": 1,
+            "1": 2,
+            "8": 1
         }
     }
 ]

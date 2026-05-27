@@ -291,6 +291,22 @@ button:disabled {
     background: rgba(0,0,0,0.2);
 }
 
+/* Buy Amount Controls */
+.buy-amt-btn {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    border: 1px solid var(--accent-color);
+    background: transparent;
+    color: var(--accent-color);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.buy-amt-btn.active {
+    background: var(--accent-color);
+    color: white;
+}
+
 .toggle-btn {
     width: 60px;
     display: flex;
@@ -511,6 +527,15 @@ footer {
     border: 1px solid var(--border-color);
     width: 500px;
     max-width: 90%;
+}
+
+.selection-mode .periodic-cell {
+    cursor: pointer;
+}
+
+.selection-mode .periodic-cell:hover:not(.hidden) {
+    border-color: var(--success-color);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
 }
 
 textarea {
