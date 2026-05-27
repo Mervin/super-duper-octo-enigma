@@ -1,0 +1,256 @@
+[
+    {
+        "id": 1,
+        "name": "Diatomic Hydrogen",
+        "symbol": "H2",
+        "reqs": {
+            "1": 2
+        }
+    },
+    {
+        "id": 2,
+        "name": "Water",
+        "symbol": "H2O",
+        "reqs": {
+            "1": 2,
+            "8": 1
+        }
+    },
+    {
+        "id": 3,
+        "name": "Carbon Dioxide",
+        "symbol": "CO2",
+        "reqs": {
+            "6": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 4,
+        "name": "Methane",
+        "symbol": "CH4",
+        "reqs": {
+            "6": 1,
+            "1": 4
+        }
+    },
+    {
+        "id": 5,
+        "name": "Ammonia",
+        "symbol": "NH3",
+        "reqs": {
+            "7": 1,
+            "1": 3
+        }
+    },
+    {
+        "id": 6,
+        "name": "Sodium Chloride",
+        "symbol": "NaCl",
+        "reqs": {
+            "11": 1,
+            "17": 1
+        }
+    },
+    {
+        "id": 7,
+        "name": "Sulfuric Acid",
+        "symbol": "H2SO4",
+        "reqs": {
+            "1": 2,
+            "16": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 8,
+        "name": "Glucose",
+        "symbol": "C6H12O6",
+        "reqs": {
+            "6": 6,
+            "1": 12,
+            "8": 6
+        }
+    },
+    {
+        "id": 9,
+        "name": "Ozone",
+        "symbol": "O3",
+        "reqs": {
+            "8": 3
+        }
+    },
+    {
+        "id": 10,
+        "name": "Nitric Acid",
+        "symbol": "HNO3",
+        "reqs": {
+            "1": 1,
+            "7": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 11,
+        "name": "Hydrochloric Acid",
+        "symbol": "HCl",
+        "reqs": {
+            "1": 1,
+            "17": 1
+        }
+    },
+    {
+        "id": 12,
+        "name": "Ethanol",
+        "symbol": "C2H5OH",
+        "reqs": {
+            "6": 2,
+            "1": 6,
+            "8": 1
+        }
+    },
+    {
+        "id": 13,
+        "name": "Benzene",
+        "symbol": "C6H6",
+        "reqs": {
+            "6": 6,
+            "1": 6
+        }
+    },
+    {
+        "id": 14,
+        "name": "Aspirin",
+        "symbol": "C9H8O4",
+        "reqs": {
+            "6": 9,
+            "1": 8,
+            "8": 4
+        }
+    },
+    {
+        "id": 15,
+        "name": "Caffeine",
+        "symbol": "C8H10N4O2",
+        "reqs": {
+            "6": 8,
+            "1": 10,
+            "7": 4,
+            "8": 2
+        }
+    },
+    {
+        "id": 16,
+        "name": "Calcium Carbonate",
+        "symbol": "CaCO3",
+        "reqs": {
+            "20": 1,
+            "6": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 17,
+        "name": "Potassium Nitrate",
+        "symbol": "KNO3",
+        "reqs": {
+            "19": 1,
+            "7": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 18,
+        "name": "Iron(III) Oxide",
+        "symbol": "Fe2O3",
+        "reqs": {
+            "26": 2,
+            "8": 3
+        }
+    },
+    {
+        "id": 19,
+        "name": "Phosphoric Acid",
+        "symbol": "H3PO4",
+        "reqs": {
+            "1": 3,
+            "15": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 20,
+        "name": "Hydrogen Peroxide",
+        "symbol": "H2O2",
+        "reqs": {
+            "1": 2,
+            "8": 2
+        }
+    },
+    {
+        "id": 21,
+        "name": "Sodium Hydroxide",
+        "symbol": "NaOH",
+        "reqs": {
+            "11": 1,
+            "8": 1,
+            "1": 1
+        }
+    },
+    {
+        "id": 22,
+        "name": "Silver Nitrate",
+        "symbol": "AgNO3",
+        "reqs": {
+            "47": 1,
+            "7": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 23,
+        "name": "Copper(II) Sulfate",
+        "symbol": "CuSO4",
+        "reqs": {
+            "29": 1,
+            "16": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 24,
+        "name": "Zinc Oxide",
+        "symbol": "ZnO",
+        "reqs": {
+            "30": 1,
+            "8": 1
+        }
+    },
+    {
+        "id": 25,
+        "name": "Titanium Dioxide",
+        "symbol": "TiO2",
+        "reqs": {
+            "22": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 26,
+        "name": "Uranium Hexafluoride",
+        "symbol": "UF6",
+        "reqs": {
+            "92": 1,
+            "9": 6
+        }
+    },
+    {
+        "id": 27,
+        "name": "Lead(II) Sulfide",
+        "symbol": "PbS",
+        "reqs": {
+            "82": 1,
+            "16": 1
+        }
+    }
+]

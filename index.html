@@ -21,6 +21,7 @@
                 <button class="tab-btn" data-tab="tab-actions" data-i18n="actions">Actions</button>
                 <button class="tab-btn" data-tab="tab-upgrades" data-i18n="upgrades">Upgrades</button>
                 <button class="tab-btn hidden" id="tab-btn-molecules" data-tab="tab-molecules" data-i18n="molecules">Molecules</button>
+                <button class="tab-btn" data-tab="tab-settings" data-i18n="settings">Settings</button>
             </nav>
         </header>
 
@@ -46,9 +47,17 @@
                 </div>
 
                 <div id="periodic-table-container">
-                    <h3 data-i18n="periodicTable">Periodic Table</h3>
-                    <div class="periodic-grid" id="periodic-grid">
-                        <!-- Periodic table items generated here -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 data-i18n="periodicTable">Periodic Table</h3>
+                        <div class="zoom-controls">
+                            <button id="btn-zoom-out" class="zoom-btn">-</button>
+                            <button id="btn-zoom-in" class="zoom-btn">+</button>
+                        </div>
+                    </div>
+                    <div id="periodic-zoom-wrapper" style="overflow: hidden; width: 100%; height: 300px; border: 1px solid #334155; border-radius: 8px; position: relative;">
+                        <div class="periodic-grid" id="periodic-grid" style="transform-origin: 0 0; position: absolute; transition: transform 0.1s; padding: 10px;">
+                            <!-- Periodic table items generated here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -67,6 +76,41 @@
 
             <div id="tab-molecules" class="panel tab-content hidden">
                 <h2 data-i18n="molecules">Molecules</h2>
+
+                <div class="lab-section">
+                    <h3>Experiment Lab</h3>
+                    <p>Select elements to combine and experiment. If they form a valid molecule, you discover its recipe! (Incorrect guesses consume the elements).</p>
+                    <div id="experiment-ui" class="experiment-grid">
+                        <select id="exp-element-1"></select>
+                        <input type="number" id="exp-qty-1" value="1" min="1" max="99">
+                        <span>+</span>
+                        <select id="exp-element-2">
+                            <option value="0">None</option>
+                        </select>
+                        <input type="number" id="exp-qty-2" value="1" min="1" max="99">
+                        <span>+</span>
+                        <select id="exp-element-3">
+                            <option value="0">None</option>
+                        </select>
+                        <input type="number" id="exp-qty-3" value="1" min="1" max="99">
+                    </div>
+                    <button id="btn-experiment" class="action-btn main-btn" style="margin-top: 10px;">Experiment!</button>
+                    <div id="experiment-result" style="margin-top: 10px; font-weight: bold;"></div>
+                </div>
+
+                <div class="lab-section" style="margin-top: 20px;">
+                    <h3>Research Lab</h3>
+                    <p>Fund research with Quarks to automatically discover a random unknown molecule.</p>
+                    <button id="btn-start-research" class="upgrade-btn">
+                        Start Research
+                        <span class="cost">Cost: <span id="research-cost">100000</span> Quarks</span>
+                    </button>
+                    <div id="research-timer" class="hidden" style="margin-top: 10px; color: #4ade80;">Researching... Time left: <span id="research-time-left">0</span>s</div>
+                </div>
+
+                <hr style="border: 1px solid #334155; margin: 20px 0;">
+
+                <h3>Known Molecules</h3>
                 <div class="molecules-list" id="molecules-container">
                     <!-- Molecule craft buttons will be generated here -->
                 </div>
@@ -92,18 +136,19 @@
                     </button>
                 </div>
             </div>
-        </main>
 
-        <footer>
-            <div class="settings" style="flex-wrap: wrap;">
-                <button id="btn-save" class="setting-btn" data-i18n="save">Save</button>
-                <button id="btn-export" class="setting-btn" data-i18n="exportSave">Export Save</button>
-                <button id="btn-import" class="setting-btn" data-i18n="importSave">Import Save</button>
-                <button id="btn-hard-reset" class="setting-btn danger" data-i18n="wipeSave">Wipe Save</button>
-                <button id="btn-toggle-lang" class="setting-btn" style="border-color: #f59e0b; color: #f59e0b;">EN / CZ</button>
-                <span id="save-status"></span>
+            <div id="tab-settings" class="panel tab-content hidden">
+                <h2 data-i18n="settings">Settings</h2>
+                <div class="settings" style="flex-wrap: wrap; flex-direction: column; align-items: center; gap: 10px;">
+                    <button id="btn-save" class="action-btn main-btn" style="width: 200px;" data-i18n="save">Save</button>
+                    <span id="save-status" style="height: 20px;"></span>
+                    <button id="btn-export" class="action-btn" style="width: 200px;" data-i18n="exportSave">Export Save</button>
+                    <button id="btn-import" class="action-btn" style="width: 200px;" data-i18n="importSave">Import Save</button>
+                    <button id="btn-toggle-lang" class="action-btn" style="width: 200px; border-color: #f59e0b; color: #f59e0b;">EN / CZ</button>
+                    <button id="btn-hard-reset" class="action-btn prestige-btn" style="width: 200px;" data-i18n="wipeSave">Wipe Save</button>
+                </div>
             </div>
-        </footer>
+        </main>
     </div>
 
     <!-- Modals -->

@@ -8,24 +8,21 @@ const DEFAULT_STATE = {
     processors: 0, // Automates Merging
     accelerators: 0, // Global speed multiplier
     language: "en", // default language
-    elements: {
-        1: 0, // Hydrogen
-        2: 0, // Helium
-        3: 0, // Lithium
-        4: 0, // Beryllium
-        5: 0, // Boron
-        6: 0, // Carbon
-        7: 0, // Nitrogen
-        8: 0, // Oxygen
-    },
-    molecules: {
-        1: 0, // H2
-        2: 0, // H2O
-        3: 0, // CO2
-        4: 0, // CH4
-    },
+    elements: {}, // Populated dynamically
+    molecules: {}, // Populated dynamically
+    discoveredMolecules: {}, // Populated dynamically, true if discovered
+    researchEndTime: 0, // When current research finishes
     lastSaveTime: Date.now()
 };
+
+// Initialize default elements and molecules objects
+for (let i = 1; i <= 118; i++) {
+    DEFAULT_STATE.elements[i] = 0;
+}
+for (let i = 1; i <= 27; i++) {
+    DEFAULT_STATE.molecules[i] = 0;
+    DEFAULT_STATE.discoveredMolecules[i] = false;
+}
 
 let game = JSON.parse(JSON.stringify(DEFAULT_STATE));
 const SAVE_KEY = "atomicIdleSave";
@@ -72,7 +69,8 @@ const TRANSLATIONS = {
         hintH2: "Hint: Two basic elements combined.",
         hintH2O: "Hint: 2 Hydrogen + 1 Oxygen.",
         hintCO2: "Hint: 1 Carbon + 2 Oxygen.",
-        hintCH4: "Hint: 1 Carbon + 4 Hydrogen."
+        hintCH4: "Hint: 1 Carbon + 4 Hydrogen.",
+        settings: "Settings"
     },
     cz: {
         resources: "Zdroje",
@@ -114,7 +112,8 @@ const TRANSLATIONS = {
         hintH2: "Nápověda: Dva základní prvky dohromady.",
         hintH2O: "Nápověda: 2 Vodík + 1 Kyslík.",
         hintCO2: "Nápověda: 1 Uhlík + 2 Kyslík.",
-        hintCH4: "Nápověda: 1 Uhlík + 4 Vodík."
+        hintCH4: "Nápověda: 1 Uhlík + 4 Vodík.",
+        settings: "Nastavení"
     }
 };
 
@@ -173,7 +172,8 @@ function loadGame() {
                 ...DEFAULT_STATE,
                 ...savedData,
                 elements: { ...DEFAULT_STATE.elements, ...savedData.elements },
-                molecules: { ...DEFAULT_STATE.molecules, ...savedData.molecules }
+                molecules: { ...DEFAULT_STATE.molecules, ...savedData.molecules },
+                discoveredMolecules: { ...DEFAULT_STATE.discoveredMolecules, ...savedData.discoveredMolecules }
             };
 
             // Handle missing properties from older saves
@@ -181,6 +181,12 @@ function loadGame() {
             if (typeof game.language === "undefined") game.language = "en";
             if (typeof game.hasPrestiged === "undefined") game.hasPrestiged = game.backgroundRadiation > 0;
             if (typeof game.accelerators === "undefined") game.accelerators = 0;
+            if (typeof game.researchEndTime === "undefined") game.researchEndTime = 0;
+
+            // Retroactive fix: ensure initial molecules are marked discovered if player had them before update
+            for (let i = 1; i <= 4; i++) {
+                if (game.molecules[i] > 0) game.discoveredMolecules[i] = true;
+            }
 
             // Offline Progress Calculation
             const now = Date.now();
@@ -265,23 +271,975 @@ function closeModals() {
 
 // Element Definitions
 const ELEMENTS = [
-    { id: 1, name: "Hydrogen", symbol: "H", baseCost: 1 }, // Costs 1 Quark
-    { id: 2, name: "Helium", symbol: "He", mergeReq: 4 },  // Needs 4 H
-    { id: 3, name: "Lithium", symbol: "Li", mergeReq: 4 }, // Needs 4 He
-    { id: 4, name: "Beryllium", symbol: "Be", mergeReq: 4 }, // Needs 4 Li
-    { id: 5, name: "Boron", symbol: "B", mergeReq: 3 },    // Needs 3 Be
-    { id: 6, name: "Carbon", symbol: "C", mergeReq: 3 },   // Needs 3 B
-    { id: 7, name: "Nitrogen", symbol: "N", mergeReq: 3 }, // Needs 3 C
-    { id: 8, name: "Oxygen", symbol: "O", mergeReq: 3 }    // Needs 3 N
-];
+    {
+        "id": 1,
+        "name": "Hydrogen",
+        "symbol": "H",
+        "baseCost": 1
+    },
+    {
+        "id": 2,
+        "name": "Helium",
+        "symbol": "He",
+        "mergeReq": 6
+    },
+    {
+        "id": 3,
+        "name": "Lithium",
+        "symbol": "Li",
+        "mergeReq": 2
+    },
+    {
+        "id": 4,
+        "name": "Beryllium",
+        "symbol": "Be",
+        "mergeReq": 3
+    },
+    {
+        "id": 5,
+        "name": "Boron",
+        "symbol": "B",
+        "mergeReq": 4
+    },
+    {
+        "id": 6,
+        "name": "Carbon",
+        "symbol": "C",
+        "mergeReq": 4
+    },
+    {
+        "id": 7,
+        "name": "Nitrogen",
+        "symbol": "N",
+        "mergeReq": 5
+    },
+    {
+        "id": 8,
+        "name": "Oxygen",
+        "symbol": "O",
+        "mergeReq": 5
+    },
+    {
+        "id": 9,
+        "name": "Fluorine",
+        "symbol": "F",
+        "mergeReq": 5
+    },
+    {
+        "id": 10,
+        "name": "Neon",
+        "symbol": "Ne",
+        "mergeReq": 6
+    },
+    {
+        "id": 11,
+        "name": "Sodium",
+        "symbol": "Na",
+        "mergeReq": 2
+    },
+    {
+        "id": 12,
+        "name": "Magnesium",
+        "symbol": "Mg",
+        "mergeReq": 3
+    },
+    {
+        "id": 13,
+        "name": "Aluminum",
+        "symbol": "Al",
+        "mergeReq": 3
+    },
+    {
+        "id": 14,
+        "name": "Silicon",
+        "symbol": "Si",
+        "mergeReq": 4
+    },
+    {
+        "id": 15,
+        "name": "Phosphorus",
+        "symbol": "P",
+        "mergeReq": 5
+    },
+    {
+        "id": 16,
+        "name": "Sulfur",
+        "symbol": "S",
+        "mergeReq": 5
+    },
+    {
+        "id": 17,
+        "name": "Chlorine",
+        "symbol": "Cl",
+        "mergeReq": 5
+    },
+    {
+        "id": 18,
+        "name": "Argon",
+        "symbol": "Ar",
+        "mergeReq": 6
+    },
+    {
+        "id": 19,
+        "name": "Potassium",
+        "symbol": "K",
+        "mergeReq": 2
+    },
+    {
+        "id": 20,
+        "name": "Calcium",
+        "symbol": "Ca",
+        "mergeReq": 3
+    },
+    {
+        "id": 21,
+        "name": "Scandium",
+        "symbol": "Sc",
+        "mergeReq": 4
+    },
+    {
+        "id": 22,
+        "name": "Titanium",
+        "symbol": "Ti",
+        "mergeReq": 4
+    },
+    {
+        "id": 23,
+        "name": "Vanadium",
+        "symbol": "V",
+        "mergeReq": 4
+    },
+    {
+        "id": 24,
+        "name": "Chromium",
+        "symbol": "Cr",
+        "mergeReq": 4
+    },
+    {
+        "id": 25,
+        "name": "Manganese",
+        "symbol": "Mn",
+        "mergeReq": 4
+    },
+    {
+        "id": 26,
+        "name": "Iron",
+        "symbol": "Fe",
+        "mergeReq": 4
+    },
+    {
+        "id": 27,
+        "name": "Cobalt",
+        "symbol": "Co",
+        "mergeReq": 4
+    },
+    {
+        "id": 28,
+        "name": "Nickel",
+        "symbol": "Ni",
+        "mergeReq": 4
+    },
+    {
+        "id": 29,
+        "name": "Copper",
+        "symbol": "Cu",
+        "mergeReq": 4
+    },
+    {
+        "id": 30,
+        "name": "Zinc",
+        "symbol": "Zn",
+        "mergeReq": 4
+    },
+    {
+        "id": 31,
+        "name": "Gallium",
+        "symbol": "Ga",
+        "mergeReq": 3
+    },
+    {
+        "id": 32,
+        "name": "Germanium",
+        "symbol": "Ge",
+        "mergeReq": 4
+    },
+    {
+        "id": 33,
+        "name": "Arsenic",
+        "symbol": "As",
+        "mergeReq": 5
+    },
+    {
+        "id": 34,
+        "name": "Selenium",
+        "symbol": "Se",
+        "mergeReq": 5
+    },
+    {
+        "id": 35,
+        "name": "Bromine",
+        "symbol": "Br",
+        "mergeReq": 5
+    },
+    {
+        "id": 36,
+        "name": "Krypton",
+        "symbol": "Kr",
+        "mergeReq": 6
+    },
+    {
+        "id": 37,
+        "name": "Rubidium",
+        "symbol": "Rb",
+        "mergeReq": 2
+    },
+    {
+        "id": 38,
+        "name": "Strontium",
+        "symbol": "Sr",
+        "mergeReq": 3
+    },
+    {
+        "id": 39,
+        "name": "Yttrium",
+        "symbol": "Y",
+        "mergeReq": 4
+    },
+    {
+        "id": 40,
+        "name": "Zirconium",
+        "symbol": "Zr",
+        "mergeReq": 4
+    },
+    {
+        "id": 41,
+        "name": "Niobium",
+        "symbol": "Nb",
+        "mergeReq": 4
+    },
+    {
+        "id": 42,
+        "name": "Molybdenum",
+        "symbol": "Mo",
+        "mergeReq": 4
+    },
+    {
+        "id": 43,
+        "name": "Technetium",
+        "symbol": "Tc",
+        "mergeReq": 4
+    },
+    {
+        "id": 44,
+        "name": "Ruthenium",
+        "symbol": "Ru",
+        "mergeReq": 4
+    },
+    {
+        "id": 45,
+        "name": "Rhodium",
+        "symbol": "Rh",
+        "mergeReq": 4
+    },
+    {
+        "id": 46,
+        "name": "Palladium",
+        "symbol": "Pd",
+        "mergeReq": 4
+    },
+    {
+        "id": 47,
+        "name": "Silver",
+        "symbol": "Ag",
+        "mergeReq": 4
+    },
+    {
+        "id": 48,
+        "name": "Cadmium",
+        "symbol": "Cd",
+        "mergeReq": 4
+    },
+    {
+        "id": 49,
+        "name": "Indium",
+        "symbol": "In",
+        "mergeReq": 3
+    },
+    {
+        "id": 50,
+        "name": "Tin",
+        "symbol": "Sn",
+        "mergeReq": 4
+    },
+    {
+        "id": 51,
+        "name": "Antimony",
+        "symbol": "Sb",
+        "mergeReq": 5
+    },
+    {
+        "id": 52,
+        "name": "Tellurium",
+        "symbol": "Te",
+        "mergeReq": 5
+    },
+    {
+        "id": 53,
+        "name": "Iodine",
+        "symbol": "I",
+        "mergeReq": 5
+    },
+    {
+        "id": 54,
+        "name": "Xenon",
+        "symbol": "Xe",
+        "mergeReq": 6
+    },
+    {
+        "id": 55,
+        "name": "Cesium",
+        "symbol": "Cs",
+        "mergeReq": 2
+    },
+    {
+        "id": 56,
+        "name": "Barium",
+        "symbol": "Ba",
+        "mergeReq": 3
+    },
+    {
+        "id": 57,
+        "name": "Lanthanum",
+        "symbol": "La",
+        "mergeReq": 4
+    },
+    {
+        "id": 58,
+        "name": "Cerium",
+        "symbol": "Ce",
+        "mergeReq": 4
+    },
+    {
+        "id": 59,
+        "name": "Praseodymium",
+        "symbol": "Pr",
+        "mergeReq": 4
+    },
+    {
+        "id": 60,
+        "name": "Neodymium",
+        "symbol": "Nd",
+        "mergeReq": 4
+    },
+    {
+        "id": 61,
+        "name": "Promethium",
+        "symbol": "Pm",
+        "mergeReq": 4
+    },
+    {
+        "id": 62,
+        "name": "Samarium",
+        "symbol": "Sm",
+        "mergeReq": 4
+    },
+    {
+        "id": 63,
+        "name": "Europium",
+        "symbol": "Eu",
+        "mergeReq": 4
+    },
+    {
+        "id": 64,
+        "name": "Gadolinium",
+        "symbol": "Gd",
+        "mergeReq": 4
+    },
+    {
+        "id": 65,
+        "name": "Terbium",
+        "symbol": "Tb",
+        "mergeReq": 4
+    },
+    {
+        "id": 66,
+        "name": "Dysprosium",
+        "symbol": "Dy",
+        "mergeReq": 4
+    },
+    {
+        "id": 67,
+        "name": "Holmium",
+        "symbol": "Ho",
+        "mergeReq": 4
+    },
+    {
+        "id": 68,
+        "name": "Erbium",
+        "symbol": "Er",
+        "mergeReq": 4
+    },
+    {
+        "id": 69,
+        "name": "Thulium",
+        "symbol": "Tm",
+        "mergeReq": 4
+    },
+    {
+        "id": 70,
+        "name": "Ytterbium",
+        "symbol": "Yb",
+        "mergeReq": 4
+    },
+    {
+        "id": 71,
+        "name": "Lutetium",
+        "symbol": "Lu",
+        "mergeReq": 4
+    },
+    {
+        "id": 72,
+        "name": "Hafnium",
+        "symbol": "Hf",
+        "mergeReq": 4
+    },
+    {
+        "id": 73,
+        "name": "Tantalum",
+        "symbol": "Ta",
+        "mergeReq": 4
+    },
+    {
+        "id": 74,
+        "name": "Tungsten",
+        "symbol": "W",
+        "mergeReq": 4
+    },
+    {
+        "id": 75,
+        "name": "Rhenium",
+        "symbol": "Re",
+        "mergeReq": 4
+    },
+    {
+        "id": 76,
+        "name": "Osmium",
+        "symbol": "Os",
+        "mergeReq": 4
+    },
+    {
+        "id": 77,
+        "name": "Iridium",
+        "symbol": "Ir",
+        "mergeReq": 4
+    },
+    {
+        "id": 78,
+        "name": "Platinum",
+        "symbol": "Pt",
+        "mergeReq": 4
+    },
+    {
+        "id": 79,
+        "name": "Gold",
+        "symbol": "Au",
+        "mergeReq": 4
+    },
+    {
+        "id": 80,
+        "name": "Mercury",
+        "symbol": "Hg",
+        "mergeReq": 4
+    },
+    {
+        "id": 81,
+        "name": "Thallium",
+        "symbol": "Tl",
+        "mergeReq": 3
+    },
+    {
+        "id": 82,
+        "name": "Lead",
+        "symbol": "Pb",
+        "mergeReq": 4
+    },
+    {
+        "id": 83,
+        "name": "Bismuth",
+        "symbol": "Bi",
+        "mergeReq": 5
+    },
+    {
+        "id": 84,
+        "name": "Polonium",
+        "symbol": "Po",
+        "mergeReq": 5
+    },
+    {
+        "id": 85,
+        "name": "Astatine",
+        "symbol": "At",
+        "mergeReq": 5
+    },
+    {
+        "id": 86,
+        "name": "Radon",
+        "symbol": "Rn",
+        "mergeReq": 6
+    },
+    {
+        "id": 87,
+        "name": "Francium",
+        "symbol": "Fr",
+        "mergeReq": 2
+    },
+    {
+        "id": 88,
+        "name": "Radium",
+        "symbol": "Ra",
+        "mergeReq": 3
+    },
+    {
+        "id": 89,
+        "name": "Actinium",
+        "symbol": "Ac",
+        "mergeReq": 4
+    },
+    {
+        "id": 90,
+        "name": "Thorium",
+        "symbol": "Th",
+        "mergeReq": 4
+    },
+    {
+        "id": 91,
+        "name": "Protactinium",
+        "symbol": "Pa",
+        "mergeReq": 4
+    },
+    {
+        "id": 92,
+        "name": "Uranium",
+        "symbol": "U",
+        "mergeReq": 4
+    },
+    {
+        "id": 93,
+        "name": "Neptunium",
+        "symbol": "Np",
+        "mergeReq": 4
+    },
+    {
+        "id": 94,
+        "name": "Plutonium",
+        "symbol": "Pu",
+        "mergeReq": 4
+    },
+    {
+        "id": 95,
+        "name": "Americium",
+        "symbol": "Am",
+        "mergeReq": 4
+    },
+    {
+        "id": 96,
+        "name": "Curium",
+        "symbol": "Cm",
+        "mergeReq": 4
+    },
+    {
+        "id": 97,
+        "name": "Berkelium",
+        "symbol": "Bk",
+        "mergeReq": 4
+    },
+    {
+        "id": 98,
+        "name": "Californium",
+        "symbol": "Cf",
+        "mergeReq": 4
+    },
+    {
+        "id": 99,
+        "name": "Einsteinium",
+        "symbol": "Es",
+        "mergeReq": 4
+    },
+    {
+        "id": 100,
+        "name": "Fermium",
+        "symbol": "Fm",
+        "mergeReq": 4
+    },
+    {
+        "id": 101,
+        "name": "Mendelevium",
+        "symbol": "Md",
+        "mergeReq": 4
+    },
+    {
+        "id": 102,
+        "name": "Nobelium",
+        "symbol": "No",
+        "mergeReq": 4
+    },
+    {
+        "id": 103,
+        "name": "Lawrencium",
+        "symbol": "Lr",
+        "mergeReq": 4
+    },
+    {
+        "id": 104,
+        "name": "Rutherfordium",
+        "symbol": "Rf",
+        "mergeReq": 4
+    },
+    {
+        "id": 105,
+        "name": "Dubnium",
+        "symbol": "Db",
+        "mergeReq": 4
+    },
+    {
+        "id": 106,
+        "name": "Seaborgium",
+        "symbol": "Sg",
+        "mergeReq": 4
+    },
+    {
+        "id": 107,
+        "name": "Bohrium",
+        "symbol": "Bh",
+        "mergeReq": 4
+    },
+    {
+        "id": 108,
+        "name": "Hassium",
+        "symbol": "Hs",
+        "mergeReq": 4
+    },
+    {
+        "id": 109,
+        "name": "Meitnerium",
+        "symbol": "Mt",
+        "mergeReq": 4
+    },
+    {
+        "id": 110,
+        "name": "Darmstadtium",
+        "symbol": "Ds",
+        "mergeReq": 4
+    },
+    {
+        "id": 111,
+        "name": "Roentgenium",
+        "symbol": "Rg",
+        "mergeReq": 4
+    },
+    {
+        "id": 112,
+        "name": "Copernicium",
+        "symbol": "Cn",
+        "mergeReq": 4
+    },
+    {
+        "id": 113,
+        "name": "Nihonium",
+        "symbol": "Nh",
+        "mergeReq": 3
+    },
+    {
+        "id": 114,
+        "name": "Flerovium",
+        "symbol": "Fl",
+        "mergeReq": 4
+    },
+    {
+        "id": 115,
+        "name": "Moscovium",
+        "symbol": "Mc",
+        "mergeReq": 5
+    },
+    {
+        "id": 116,
+        "name": "Livermorium",
+        "symbol": "Lv",
+        "mergeReq": 5
+    },
+    {
+        "id": 117,
+        "name": "Tennessine",
+        "symbol": "Ts",
+        "mergeReq": 5
+    },
+    {
+        "id": 118,
+        "name": "Oganesson",
+        "symbol": "Og",
+        "mergeReq": 6
+    }
+]
+;
 
 // Molecule Definitions
 const MOLECULES = [
-    { id: 1, name: "Diatomic Hydrogen", symbol: "H2", reqs: { 1: 2 }, hintKey: "hintH2" },
-    { id: 2, name: "Water", symbol: "H2O", reqs: { 1: 2, 8: 1 }, hintKey: "hintH2O" },
-    { id: 3, name: "Carbon Dioxide", symbol: "CO2", reqs: { 6: 1, 8: 2 }, hintKey: "hintCO2" },
-    { id: 4, name: "Methane", symbol: "CH4", reqs: { 6: 1, 1: 4 }, hintKey: "hintCH4" }
-];
+    {
+        "id": 1,
+        "name": "Diatomic Hydrogen",
+        "symbol": "H2",
+        "reqs": {
+            "1": 2
+        }
+    },
+    {
+        "id": 2,
+        "name": "Water",
+        "symbol": "H2O",
+        "reqs": {
+            "1": 2,
+            "8": 1
+        }
+    },
+    {
+        "id": 3,
+        "name": "Carbon Dioxide",
+        "symbol": "CO2",
+        "reqs": {
+            "6": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 4,
+        "name": "Methane",
+        "symbol": "CH4",
+        "reqs": {
+            "6": 1,
+            "1": 4
+        }
+    },
+    {
+        "id": 5,
+        "name": "Ammonia",
+        "symbol": "NH3",
+        "reqs": {
+            "7": 1,
+            "1": 3
+        }
+    },
+    {
+        "id": 6,
+        "name": "Sodium Chloride",
+        "symbol": "NaCl",
+        "reqs": {
+            "11": 1,
+            "17": 1
+        }
+    },
+    {
+        "id": 7,
+        "name": "Sulfuric Acid",
+        "symbol": "H2SO4",
+        "reqs": {
+            "1": 2,
+            "16": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 8,
+        "name": "Glucose",
+        "symbol": "C6H12O6",
+        "reqs": {
+            "6": 6,
+            "1": 12,
+            "8": 6
+        }
+    },
+    {
+        "id": 9,
+        "name": "Ozone",
+        "symbol": "O3",
+        "reqs": {
+            "8": 3
+        }
+    },
+    {
+        "id": 10,
+        "name": "Nitric Acid",
+        "symbol": "HNO3",
+        "reqs": {
+            "1": 1,
+            "7": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 11,
+        "name": "Hydrochloric Acid",
+        "symbol": "HCl",
+        "reqs": {
+            "1": 1,
+            "17": 1
+        }
+    },
+    {
+        "id": 12,
+        "name": "Ethanol",
+        "symbol": "C2H5OH",
+        "reqs": {
+            "6": 2,
+            "1": 6,
+            "8": 1
+        }
+    },
+    {
+        "id": 13,
+        "name": "Benzene",
+        "symbol": "C6H6",
+        "reqs": {
+            "6": 6,
+            "1": 6
+        }
+    },
+    {
+        "id": 14,
+        "name": "Aspirin",
+        "symbol": "C9H8O4",
+        "reqs": {
+            "6": 9,
+            "1": 8,
+            "8": 4
+        }
+    },
+    {
+        "id": 15,
+        "name": "Caffeine",
+        "symbol": "C8H10N4O2",
+        "reqs": {
+            "6": 8,
+            "1": 10,
+            "7": 4,
+            "8": 2
+        }
+    },
+    {
+        "id": 16,
+        "name": "Calcium Carbonate",
+        "symbol": "CaCO3",
+        "reqs": {
+            "20": 1,
+            "6": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 17,
+        "name": "Potassium Nitrate",
+        "symbol": "KNO3",
+        "reqs": {
+            "19": 1,
+            "7": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 18,
+        "name": "Iron(III) Oxide",
+        "symbol": "Fe2O3",
+        "reqs": {
+            "26": 2,
+            "8": 3
+        }
+    },
+    {
+        "id": 19,
+        "name": "Phosphoric Acid",
+        "symbol": "H3PO4",
+        "reqs": {
+            "1": 3,
+            "15": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 20,
+        "name": "Hydrogen Peroxide",
+        "symbol": "H2O2",
+        "reqs": {
+            "1": 2,
+            "8": 2
+        }
+    },
+    {
+        "id": 21,
+        "name": "Sodium Hydroxide",
+        "symbol": "NaOH",
+        "reqs": {
+            "11": 1,
+            "8": 1,
+            "1": 1
+        }
+    },
+    {
+        "id": 22,
+        "name": "Silver Nitrate",
+        "symbol": "AgNO3",
+        "reqs": {
+            "47": 1,
+            "7": 1,
+            "8": 3
+        }
+    },
+    {
+        "id": 23,
+        "name": "Copper(II) Sulfate",
+        "symbol": "CuSO4",
+        "reqs": {
+            "29": 1,
+            "16": 1,
+            "8": 4
+        }
+    },
+    {
+        "id": 24,
+        "name": "Zinc Oxide",
+        "symbol": "ZnO",
+        "reqs": {
+            "30": 1,
+            "8": 1
+        }
+    },
+    {
+        "id": 25,
+        "name": "Titanium Dioxide",
+        "symbol": "TiO2",
+        "reqs": {
+            "22": 1,
+            "8": 2
+        }
+    },
+    {
+        "id": 26,
+        "name": "Uranium Hexafluoride",
+        "symbol": "UF6",
+        "reqs": {
+            "92": 1,
+            "9": 6
+        }
+    },
+    {
+        "id": 27,
+        "name": "Lead(II) Sulfide",
+        "symbol": "PbS",
+        "reqs": {
+            "82": 1,
+            "16": 1
+        }
+    }
+]
+;
 
 // Game Loop Setup
 let lastTick = Date.now();
@@ -349,7 +1307,29 @@ function gameTick() {
     const simulatedDt = rawDt * speedMultiplier;
 
     simulateProgress(simulatedDt);
+
+    // Check research
+    if (game.researchEndTime > 0 && now >= game.researchEndTime) {
+        finishResearch();
+    }
+
     updateUI();
+}
+
+function finishResearch() {
+    game.researchEndTime = 0;
+    const undiscovered = MOLECULES.filter(m => !game.discoveredMolecules[m.id]);
+    if (undiscovered.length > 0) {
+        // Pick random
+        const mol = undiscovered[Math.floor(Math.random() * undiscovered.length)];
+        game.discoveredMolecules[mol.id] = true;
+
+        const resultDiv = document.getElementById("experiment-result");
+        if (resultDiv) {
+            resultDiv.style.color = "#4ade80";
+            resultDiv.textContent = `Research complete! You discovered ${mol.name} (${mol.symbol})!`;
+        }
+    }
 }
 
 function simulateProgress(dt) {
@@ -399,7 +1379,7 @@ function simulateProgress(dt) {
         const mergesPerSec = game.processors * h2oBonus;
         const possibleMergesThisTick = mergesPerSec * dt;
 
-        for (let i = 7; i >= 1; i--) { // Max 8 elements, loop 7 down to 1
+        for (let i = ELEMENTS.length - 1; i >= 1; i--) { // Max 118 elements, loop 117 down to 1
             const nextElDef = ELEMENTS.find(e => e.id === i + 1);
             if (!nextElDef) continue;
 
@@ -436,6 +1416,111 @@ function simulateOfflineProgress(secondsPassed) {
 }
 
 // Prestige Logic
+
+// Precalculate Hydrogen equivalents for all elements based on merge requirements
+const hEquivalents = [0, 1]; // id 0 is dummy, id 1 is H
+for (let i = 2; i <= 118; i++) {
+    const elDef = ELEMENTS.find(e => e.id === i);
+    if (elDef) {
+        hEquivalents[i] = hEquivalents[i - 1] * elDef.mergeReq;
+    }
+}
+
+function doExperiment() {
+    const el1 = parseInt(document.getElementById("exp-element-1").value);
+    const q1 = parseInt(document.getElementById("exp-qty-1").value);
+
+    const el2 = parseInt(document.getElementById("exp-element-2").value);
+    const q2 = parseInt(document.getElementById("exp-qty-2").value);
+
+    const el3 = parseInt(document.getElementById("exp-element-3").value);
+    const q3 = parseInt(document.getElementById("exp-qty-3").value);
+
+    const resultDiv = document.getElementById("experiment-result");
+
+    // Build requirement signature
+    const experimentReqs = {};
+    if (el1 > 0 && q1 > 0) experimentReqs[el1] = (experimentReqs[el1] || 0) + q1;
+    if (el2 > 0 && q2 > 0) experimentReqs[el2] = (experimentReqs[el2] || 0) + q2;
+    if (el3 > 0 && q3 > 0) experimentReqs[el3] = (experimentReqs[el3] || 0) + q3;
+
+    // Check if player has enough elements to perform experiment
+    for (let eId in experimentReqs) {
+        if (game.elements[eId] < experimentReqs[eId]) {
+            resultDiv.style.color = "red";
+            resultDiv.textContent = `Not enough ${ELEMENTS.find(e => e.id == eId).name}!`;
+            return;
+        }
+    }
+
+    // Consume the elements
+    for (let eId in experimentReqs) {
+        game.elements[eId] -= experimentReqs[eId];
+    }
+
+    // Check against all molecules
+    let discovered = null;
+    for (let i = 0; i < MOLECULES.length; i++) {
+        const mol = MOLECULES[i];
+
+        let match = true;
+        // Check if all reqs in mol are exactly in experimentReqs
+        for (let eId in mol.reqs) {
+            if (experimentReqs[eId] !== mol.reqs[eId]) {
+                match = false;
+                break;
+            }
+        }
+
+        // Check if experimentReqs doesn't have extra stuff
+        if (match) {
+            for (let eId in experimentReqs) {
+                if (experimentReqs[eId] !== mol.reqs[eId]) {
+                    match = false;
+                    break;
+                }
+            }
+        }
+
+        if (match) {
+            discovered = mol;
+            break;
+        }
+    }
+
+    if (discovered) {
+        if (game.discoveredMolecules[discovered.id]) {
+            resultDiv.style.color = "orange";
+            resultDiv.textContent = `You already discovered ${discovered.name} (${discovered.symbol})!`;
+        } else {
+            game.discoveredMolecules[discovered.id] = true;
+            resultDiv.style.color = "#4ade80"; // green
+            resultDiv.textContent = `Success! You discovered ${discovered.name} (${discovered.symbol})!`;
+        }
+    } else {
+        resultDiv.style.color = "red";
+        resultDiv.textContent = `Experiment failed. Elements consumed in a minor explosion.`;
+    }
+
+    updateUI();
+}
+
+function startResearch() {
+    const cost = 100000;
+    if (game.quarks >= cost) {
+        // Find undiscovered molecules
+        const undiscovered = MOLECULES.filter(m => !game.discoveredMolecules[m.id]);
+        if (undiscovered.length === 0) {
+            alert("You have already discovered all molecules!");
+            return;
+        }
+
+        game.quarks -= cost;
+        game.researchEndTime = Date.now() + (5 * 60 * 1000); // 5 minutes
+        updateUI();
+    }
+}
+
 function getPrestigeGain() {
     // Basic formula: sum of all elements weighted by their tier,
     // scaled down drastically.
@@ -444,14 +1529,16 @@ function getPrestigeGain() {
     // We base the score on the amount of Hydrogen each atom took to make
     // e.g. He took 4 H. Li took 3 He (12 H total).
     // This prevents players from hoarding H just to boost their score.
-    const hEquivalents = [0, 1, 4, 12, 36, 72, 144, 288, 576];
 
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 118; i++) {
         score += game.elements[i] * hEquivalents[i];
     }
 
     // Need at least a score of 1000 to get 1 Background Radiation
-    const gain = Math.floor(Math.pow(score / 1000, 0.5));
+    // Since scores will be massive now, we can tweak this formula if needed,
+    // but log scale or root scale handles large numbers okay. Let's use log10-based scaling for crazy high numbers.
+    if (score < 1000) return 0;
+    const gain = Math.floor(Math.pow(Math.log10(score) * 2, 2));
     return gain;
 }
 
@@ -467,7 +1554,7 @@ function doPrestige() {
         game.generators = 0;
         game.processors = 0;
         game.synthesizers = 0;
-        for (let i = 1; i <= 8; i++) {
+        for (let i = 1; i <= 118; i++) {
             game.elements[i] = 0;
         }
 
@@ -612,7 +1699,7 @@ function initUI() {
                     <button id="btn-craft-${mol.id}" class="action-btn mol-craft-btn">
                         ${t.craft} ${mol.symbol} <span class="cost">(${reqHtml.trim()})</span>
                     </button>
-                    <div id="mol-hint-${mol.id}" class="mol-hint hidden">${t[mol.hintKey]}</div>
+                    <div id="mol-hint-${mol.id}" class="mol-hint hidden">${t[mol.hintKey] || "Unknown Molecule"}</div>
                 </div>
             `;
         });
@@ -622,6 +1709,26 @@ function initUI() {
             const btn = document.getElementById(`btn-craft-${mol.id}`);
             if(btn) btn.onclick = () => craftMolecule(mol.id);
         });
+
+        // Populate Experiment Dropdowns
+        const expSelects = [document.getElementById("exp-element-1"), document.getElementById("exp-element-2"), document.getElementById("exp-element-3")];
+        expSelects.forEach((select, idx) => {
+            if (select) {
+                // Keep the 'None' option for 2 and 3
+                const originalHtml = idx > 0 ? '<option value="0">None</option>' : '';
+                let optionsHtml = originalHtml;
+                ELEMENTS.forEach(el => {
+                    optionsHtml += `<option value="${el.id}">${el.name} (${el.symbol})</option>`;
+                });
+                select.innerHTML = optionsHtml;
+            }
+        });
+
+        const btnExperiment = document.getElementById("btn-experiment");
+        if (btnExperiment) btnExperiment.onclick = doExperiment;
+
+        const btnResearch = document.getElementById("btn-start-research");
+        if (btnResearch) btnResearch.onclick = startResearch;
     }
 
     document.getElementById("btn-gather-quarks").onclick = gatherQuarks;
@@ -642,15 +1749,15 @@ function updateUI() {
     document.getElementById("pt-amt-1").textContent = formatNumber(game.elements[1]);
 
     let highestElementSeen = 1;
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 118; i++) {
         if (game.elements[i] > 0) highestElementSeen = i;
     }
 
     // Update Progress Statistic
     const unlockedElementsCount = highestElementSeen;
-    const progressPct = Math.floor((unlockedElementsCount / 8) * 100);
+    const progressPct = Math.floor((unlockedElementsCount / 118) * 100);
     document.getElementById("discovery-progress-fill").style.width = `${progressPct}%`;
-    document.getElementById("discovery-progress-text").textContent = `${unlockedElementsCount}/8`;
+    document.getElementById("discovery-progress-text").textContent = `${unlockedElementsCount}/118`;
     document.getElementById("discovery-progress-pct").textContent = progressPct;
 
     // Update Molecules UI
@@ -665,6 +1772,23 @@ function updateUI() {
             tabMolecules.classList.remove("hidden");
         }
 
+        // Update Research Timer UI
+        const btnResearch = document.getElementById("btn-start-research");
+        const researchTimerDiv = document.getElementById("research-timer");
+        const researchTimeLeft = document.getElementById("research-time-left");
+
+        if (game.researchEndTime > 0) {
+            if(btnResearch) btnResearch.disabled = true;
+            if(researchTimerDiv) researchTimerDiv.classList.remove("hidden");
+            if(researchTimeLeft) {
+                const leftStr = Math.max(0, Math.ceil((game.researchEndTime - Date.now()) / 1000));
+                researchTimeLeft.textContent = leftStr;
+            }
+        } else {
+            if(btnResearch) btnResearch.disabled = game.quarks < 100000;
+            if(researchTimerDiv) researchTimerDiv.classList.add("hidden");
+        }
+
         MOLECULES.forEach(mol => {
             const box = document.getElementById(`mol-box-${mol.id}`);
             const hint = document.getElementById(`mol-hint-${mol.id}`);
@@ -672,25 +1796,28 @@ function updateUI() {
             const amtSpan = document.getElementById(`mol-amt-${mol.id}`);
             const bonusSpan = document.getElementById(`mol-bonus-${mol.id}`);
 
-            if(box) box.classList.remove("hidden");
+            const isDiscovered = game.discoveredMolecules[mol.id];
+
+            if(box) {
+                if (isDiscovered) {
+                    box.classList.remove("hidden");
+                } else {
+                    box.classList.add("hidden");
+                }
+            }
+
             if(amtSpan) amtSpan.textContent = formatNumber(game.molecules[mol.id] || 0);
 
-            // Check if player has the required elements to even see it vs hint
-            let hasSeenReqs = true;
             let canCraft = true;
             for (let eId in mol.reqs) {
-                if (game.elements[eId] === 0 && game.molecules[mol.id] === 0) hasSeenReqs = false;
                 if (game.elements[eId] < mol.reqs[eId]) canCraft = false;
             }
 
-            if (game.molecules[mol.id] > 0 || hasSeenReqs) {
-                if(btn) btn.classList.remove("hidden");
-                if(hint) hint.classList.add("hidden");
-            } else {
-                if(btn) btn.classList.add("hidden");
-                if(hint) hint.classList.remove("hidden");
+            if(btn) {
+                btn.classList.remove("hidden");
+                btn.disabled = !canCraft;
             }
-            if(btn) btn.disabled = !canCraft;
+            if(hint) hint.classList.add("hidden");
 
             // Update bonus displays
             if(bonusSpan) {
@@ -714,9 +1841,9 @@ function updateUI() {
     }
 
     // Reveal elements progressively (show one tier ahead of what you have)
-    const displayThreshold = Math.min(8, highestElementSeen + 1);
+    const displayThreshold = Math.min(118, highestElementSeen + 1);
 
-    for (let i = 2; i <= 8; i++) {
+    for (let i = 2; i <= 118; i++) {
         const ptAmtSpan = document.getElementById(`pt-amt-${i}`);
         if (ptAmtSpan) ptAmtSpan.textContent = formatNumber(game.elements[i]);
 
@@ -792,8 +1919,8 @@ function updateUI() {
     const prestigeSection = document.getElementById("prestige-section");
     const radDisplay = document.getElementById("radiation-display");
 
-    // Reveal prestige if they could gain > 0 or already have radiation
-    if (prestigeGain > 0 || game.backgroundRadiation > 0) {
+    // Reveal prestige ONLY if they have crafted at least 1 of Element 118 or already have radiation (prestiged before)
+    if (game.elements[118] > 0 || game.backgroundRadiation > 0) {
         prestigeSection.classList.remove("hidden");
         document.getElementById("prestige-gain").textContent = formatNumber(prestigeGain);
         document.getElementById("btn-prestige").disabled = prestigeGain <= 0;
@@ -808,6 +1935,94 @@ function updateUI() {
     } else {
         radDisplay.classList.add("hidden");
     }
+}
+
+// Zoom Logic for Periodic Table
+let currentZoom = 1;
+const zoomStep = 0.1;
+const minZoom = 0.5;
+const maxZoom = 2.0;
+
+let panX = 0;
+let panY = 0;
+let isPanning = false;
+let startX, startY;
+
+const gridEl = document.getElementById("periodic-grid");
+const zoomWrapper = document.getElementById("periodic-zoom-wrapper");
+
+function applyTransform() {
+    if (gridEl) {
+        gridEl.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+    }
+}
+
+document.getElementById("btn-zoom-in").addEventListener("click", () => {
+    if (currentZoom < maxZoom) {
+        currentZoom += zoomStep;
+        applyTransform();
+    }
+});
+
+document.getElementById("btn-zoom-out").addEventListener("click", () => {
+    if (currentZoom > minZoom) {
+        currentZoom -= zoomStep;
+        applyTransform();
+    }
+});
+
+if (zoomWrapper) {
+    zoomWrapper.addEventListener("wheel", (e) => {
+        e.preventDefault(); // Prevent page scroll
+        if (e.deltaY < 0) {
+            if (currentZoom < maxZoom) currentZoom += zoomStep;
+        } else {
+            if (currentZoom > minZoom) currentZoom -= zoomStep;
+        }
+        applyTransform();
+    });
+
+    zoomWrapper.addEventListener("mousedown", (e) => {
+        isPanning = true;
+        startX = e.clientX - panX;
+        startY = e.clientY - panY;
+        zoomWrapper.style.cursor = "grabbing";
+    });
+
+    window.addEventListener("mousemove", (e) => {
+        if (!isPanning) return;
+        panX = e.clientX - startX;
+        panY = e.clientY - startY;
+        applyTransform();
+    });
+
+    window.addEventListener("mouseup", () => {
+        isPanning = false;
+        zoomWrapper.style.cursor = "default";
+    });
+
+    // Basic Touch support for panning
+    zoomWrapper.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 1) {
+            isPanning = true;
+            startX = e.touches[0].clientX - panX;
+            startY = e.touches[0].clientY - panY;
+        }
+    });
+
+    window.addEventListener("touchmove", (e) => {
+        if (!isPanning) return;
+        if (e.touches.length === 1) {
+            // e.preventDefault(); // careful with this as it breaks scrolling if not handled right, but wrapper is fixed size
+            panX = e.touches[0].clientX - startX;
+            panY = e.touches[0].clientY - startY;
+            applyTransform();
+        }
+    }, {passive: false});
+
+    window.addEventListener("touchend", () => {
+        isPanning = false;
+    });
 }
 
 // Event Listeners for Settings
