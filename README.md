@@ -1,31 +1,33 @@
-# Atomic Idle
+# Idle Games Hub
 
-Atomic Idle is a web-based incremental/idle game centered around merging atoms to create heavier elements.
+A web-based hub containing a collection of idle, strategy, and classic games. All games are built using HTML, CSS, and Vanilla JavaScript, requiring no build steps. They also feature English/Czech localization toggles.
 
-## Features
+## Available Games
 
-- **Gather Quarks:** Manually click to gather Quarks or use the spacebar shortcut.
-- **Synthesize Elements:** Turn your Quarks into Hydrogen, the base element.
-- **Merge Upwards:** Merge lighter elements to create heavier, more advanced ones (Helium, Lithium, Beryllium, etc.).
-- **Upgrades & Automation:**
-  - **Quark Generators:** Automatically produce Quarks over time.
-  - **H-Synthesizers:** Automatically convert Quarks into Hydrogen.
-  - **Atom Processors:** Automate the merging of your elements.
-- **Periodic Table Overview:** Keep track of your discovered elements in a stylized periodic table grid.
-- **PWA Support:** Install the game as a Progressive Web App on mobile and desktop!
+### 1. Atomic Idle
+Harvest quarks, synthesize base elements, merge upwards to create heavier elements, and discover complex molecules. Features a prestige "Cosmic Reset" system.
 
-## The Prestige System (Cosmic Reset)
+### 2. Farm Idle
+A Farmville-like clone where you manage plots of land, plant seeds, wait in real-time, and harvest crops for profit. Includes offline progression!
 
-Once you reach a high enough mass of elements, you can trigger a **Cosmic Reset**.
-This resets all your Quarks, Elements, and Upgrades, but in exchange, you gain **Background Radiation**.
-Background Radiation acts as a permanent, global multiplier to all future Quark production. Accumulate it to reach even heavier elements much faster!
+### 3. Island TD
+A rogue-like Tower Defense game. Click on fog-of-war tiles to reveal the island, uncover treasures, or accidentally dig a path for enemies to spawn. Build towers and survive waves to earn permanent upgrades.
+
+### 4. Minesweeper
+The classic puzzle game. Supports standard difficulties (Beginner, Intermediate, Expert) and custom grid/mine settings.
+
+### 5. Solitaire
+Classic Klondike Solitaire with drag-and-drop mechanics.
+
+### 6. Spider Solitaire
+Spider Solitaire supporting 1-suit, 2-suit, and 4-suit difficulties. Drag and drop sequences to complete your decks.
 
 ## How to run locally
 
-Since there are no build steps, you can just serve the directory using any static file server.
+Since there are no build steps, you can simply serve the directory using any static file server.
 
 For example, using Python 3:
 ```bash
 python3 -m http.server 3000
 ```
-Then navigate to `http://localhost:3000` in your web browser.
+Then navigate to `http://localhost:3000` in your web browser. Click on any game card to launch it!

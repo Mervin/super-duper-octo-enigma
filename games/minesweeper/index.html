@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="msTitle">Minesweeper</title>
+    <style>
+        body { font-family: sans-serif; background-color: #eee; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #game-board { display: grid; gap: 1px; background-color: #999; border: 2px solid #555; }
+        .cell { width: 30px; height: 30px; background-color: #ccc; border: 2px outset #eee; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.2rem; cursor: pointer; user-select: none; }
+        .cell.revealed { background-color: #eee; border: 1px solid #999; }
+        .cell.mine { background-color: red; }
+        .controls { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        .header { display: flex; justify-content: space-between; width: 100%; max-width: 400px; margin-bottom: 10px; font-size: 1.5rem; font-weight: bold; background: black; color: red; padding: 5px; border: 3px inset #555; }
+        select, input, button { padding: 5px; font-size: 1rem; }
+        .custom-settings { display: none; gap: 5px; }
+        .custom-settings.active { display: flex; }
+        #lang-select { position: absolute; top: 10px; right: 10px; }
+    </style>
+</head>
+<body>
+    <select id="lang-select">
+        <option value="en">EN</option>
+        <option value="cz">CZ</option>
+    </select>
+    <h1 data-i18n="msTitle">Minesweeper</h1>
+
+    <div class="controls">
+        <select id="difficulty">
+            <option value="beginner" data-i18n="beginner">Beginner (9x9, 10 Mines)</option>
+            <option value="intermediate" data-i18n="intermediate">Intermediate (16x16, 40 Mines)</option>
+            <option value="expert" data-i18n="expert">Expert (30x16, 99 Mines)</option>
+            <option value="custom" data-i18n="custom">Custom</option>
+        </select>
+
+        <div class="custom-settings" id="custom-inputs">
+            <input type="number" id="custom-w" placeholder="W" min="5" max="50" value="20" style="width: 50px;">
+            <input type="number" id="custom-h" placeholder="H" min="5" max="50" value="20" style="width: 50px;">
+            <input type="number" id="custom-m" placeholder="Mines" min="1" max="999" value="50" style="width: 70px;">
+        </div>
+
+        <button id="btn-new-game" data-i18n="newGame">New Game</button>
+        <a href="../../index.html" style="margin-left: 10px; text-decoration: none;"><button data-i18n="backToHub">Back to Hub</button></a>
+    </div>
+
+    <div class="header">
+        <div id="mines-count">000</div>
+        <div id="status-face" style="cursor: pointer;">🙂</div>
+        <div id="timer">000</div>
+    </div>
+
+    <div id="game-board"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

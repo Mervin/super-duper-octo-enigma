@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="solTitle">Solitaire</title>
+    <style>
+        body { background-color: #076324; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .controls { margin-bottom: 20px; display: flex; gap: 10px; }
+        #game-board { width: 900px; position: relative; height: 700px; }
+        .pile { width: 100px; height: 140px; border: 2px solid rgba(255,255,255,0.2); border-radius: 5px; position: absolute; }
+        .card { width: 100px; height: 140px; background-color: white; border: 1px solid #333; border-radius: 5px; position: absolute; display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: bold; cursor: grab; user-select: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); background-image: url('data:image/svg+xml;utf8,<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="white"/></svg>'); }
+        .card.back { background-color: #0b3d91; background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px); color: transparent !important; cursor: default; }
+        .red { color: red; }
+        .black { color: black; }
+        .dragging { z-index: 1000 !important; opacity: 0.9; cursor: grabbing; }
+        button, select { padding: 5px 10px; font-size: 1rem; }
+        #lang-select { position: absolute; top: 10px; right: 10px; }
+    </style>
+</head>
+<body>
+    <select id="lang-select">
+        <option value="en">EN</option>
+        <option value="cz">CZ</option>
+    </select>
+    <h1 data-i18n="solTitle">Solitaire</h1>
+
+    <div class="controls">
+        <button id="btn-new-game" data-i18n="newGame">New Game</button>
+        <a href="../../index.html" style="text-decoration: none;"><button data-i18n="backToHub">Back to Hub</button></a>
+    </div>
+
+    <div id="game-board">
+        <!-- Stock -->
+        <div id="stock" class="pile" style="left: 20px; top: 20px;"></div>
+        <!-- Waste -->
+        <div id="waste" class="pile" style="left: 140px; top: 20px;"></div>
+        <!-- Foundations -->
+        <div id="f0" class="pile" style="left: 380px; top: 20px;"></div>
+        <div id="f1" class="pile" style="left: 500px; top: 20px;"></div>
+        <div id="f2" class="pile" style="left: 620px; top: 20px;"></div>
+        <div id="f3" class="pile" style="left: 740px; top: 20px;"></div>
+
+        <!-- Tableaus -->
+        <div id="t0" class="pile" style="left: 20px; top: 180px;"></div>
+        <div id="t1" class="pile" style="left: 140px; top: 180px;"></div>
+        <div id="t2" class="pile" style="left: 260px; top: 180px;"></div>
+        <div id="t3" class="pile" style="left: 380px; top: 180px;"></div>
+        <div id="t4" class="pile" style="left: 500px; top: 180px;"></div>
+        <div id="t5" class="pile" style="left: 620px; top: 180px;"></div>
+        <div id="t6" class="pile" style="left: 740px; top: 180px;"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

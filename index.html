@@ -29,7 +29,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding: 40px 0;
         }
 
         header {
@@ -49,7 +49,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
-            max-width: 1000px;
+            max-width: 1200px;
             width: 100%;
             padding: 0 20px;
         }
@@ -72,12 +72,6 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(56, 189, 248, 0.3);
             border-color: var(--accent-color);
-        }
-
-        .game-card.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
         }
 
         .game-icon {
@@ -111,17 +105,35 @@
             <p class="game-desc">Harvest quarks, build elements, and discover molecules in this elemental idle experience.</p>
         </a>
 
-        <div class="game-card disabled">
-            <div class="game-icon">🌌</div>
-            <h2 class="game-title">Galactic Idle</h2>
-            <p class="game-desc">More universes coming soon...</p>
-        </div>
+        <a href="games/farmville/index.html" class="game-card">
+            <div class="game-icon">🚜</div>
+            <h2 class="game-title">Farm Idle</h2>
+            <p class="game-desc">Plant crops, manage your plots, and earn coins even while offline in this relaxing farm clone.</p>
+        </a>
 
-        <div class="game-card disabled">
-            <div class="game-icon">🧬</div>
-            <h2 class="game-title">Evolution Idle</h2>
-            <p class="game-desc">More universes coming soon...</p>
-        </div>
+        <a href="games/island_td/index.html" class="game-card">
+            <div class="game-icon">🏝️</div>
+            <h2 class="game-title">Island TD</h2>
+            <p class="game-desc">Explore the fog, dig paths, find treasures, and build towers to defend against waves of enemies!</p>
+        </a>
+
+        <a href="games/minesweeper/index.html" class="game-card">
+            <div class="game-icon">💣</div>
+            <h2 class="game-title">Minesweeper</h2>
+            <p class="game-desc">The classic game of logic and luck. Flag mines and clear the board without blowing up.</p>
+        </a>
+
+        <a href="games/solitaire/index.html" class="game-card">
+            <div class="game-icon">🂡</div>
+            <h2 class="game-title">Solitaire</h2>
+            <p class="game-desc">Classic Klondike Solitaire. Stack cards in alternating colors and sort them into foundations.</p>
+        </a>
+
+        <a href="games/spider_solitaire/index.html" class="game-card">
+            <div class="game-icon">🕷️</div>
+            <h2 class="game-title">Spider Solitaire</h2>
+            <p class="game-desc">The classic multi-deck solitaire variant. Complete sets of cards in descending order.</p>
+        </a>
     </div>
 
 </body>
