@@ -1,6 +1,6 @@
 const TRANSLATIONS = {
-    en: { solTitle: "Solitaire", newGame: "New Game", backToHub: "Back to Hub" },
-    cz: { solTitle: "Solitaire", newGame: "Nová Hra", backToHub: "Zpět do Hubu" }
+    en: { solTitle: "Solitaire", newGame: "New Game", backToHub: "Back to Hub", youWin: "You Win!", startNewGame: "Start New Game" },
+    cz: { solTitle: "Solitaire", newGame: "Nová Hra", backToHub: "Zpět do Hubu", youWin: "Vyhráli jste!", startNewGame: "Nová Hra" }
 };
 let lang = localStorage.getItem("hub_lang") || "en";
 document.getElementById('lang-select').value = lang;
@@ -56,6 +56,9 @@ function initGame() {
 
     const canvas = document.getElementById('fireworks-canvas');
     if (canvas) canvas.style.display = 'none';
+
+    const winScreen = document.getElementById('win-screen');
+    if (winScreen) winScreen.style.display = 'none';
 
     createDeck();
     state.stock = []; state.waste = [];
@@ -408,8 +411,32 @@ function checkWinCondition() {
     if (win) {
         triggerWinAnimation();
         startFireworks();
+
+        const winScreen = document.getElementById('win-screen');
+        if (winScreen) winScreen.style.display = 'flex';
     }
 }
+
+document.getElementById('win-screen').addEventListener('click', function(e) {
+    if (e.target.id === 'win-btn-new-game') {
+        initGame();
+    } else {
+        this.style.display = 'none';
+
+        // Hide fireworks completely if user clicks background
+        const canvas = document.getElementById('fireworks-canvas');
+        if (canvas) canvas.style.display = 'none';
+
+        if (fireworkIntervalId) {
+            clearInterval(fireworkIntervalId);
+            fireworkIntervalId = null;
+        }
+        if (fwAnimationFrameId) {
+            cancelAnimationFrame(fwAnimationFrameId);
+            fwAnimationFrameId = null;
+        }
+    }
+});
 
 // Global variables for animation
 let animatingCards = [];
