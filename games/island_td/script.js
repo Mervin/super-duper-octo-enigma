@@ -76,7 +76,7 @@ function hexDistance(q1, r1, q2, r2) {
 // Game State
 let gridMap = new Map(); // key: "q,r", value: tile obj
 let state = {
-    gold: 50,
+    gold: 100,
     lives: 20,
     wave: 0,
     relics: parseInt(localStorage.getItem('hub_td_relics')) || 0,
@@ -529,7 +529,7 @@ function loop() {
                         expandMap();
                         alert("Boss Defeated! The map has expanded.");
                     } else {
-                        state.gold += 2;
+                        state.gold += 5;
                     }
                     state.enemies.splice(state.enemies.indexOf(p.target), 1);
                     updateUI();
