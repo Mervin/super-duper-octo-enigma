@@ -47,12 +47,14 @@ header {
     gap: 10px;
 }
 
-.mobile-tabs {
-    display: none;
+.universal-tabs {
+    display: flex;
     width: 100%;
     justify-content: space-around;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 
 .tab-btn {
@@ -97,9 +99,8 @@ main {
     overflow-y: auto;
 }
 
-.left-panel { flex: 1; }
-.center-panel { flex: 1.5; }
-.right-panel { flex: 1; }
+.tab-content { display: none; }
+.tab-content.active { display: flex; }
 
 h2 {
     font-size: 1.2rem;
@@ -153,9 +154,10 @@ h2 {
 
 .periodic-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 10px;
-    overflow-x: auto; /* Allow zooming/scrolling horizontally if needed */
+    grid-template-columns: repeat(18, 60px);
+    grid-auto-rows: 70px;
+    gap: 5px;
+    overflow: visible;
 }
 
 .periodic-cell {
@@ -274,13 +276,40 @@ button:disabled {
     letter-spacing: 1px;
 }
 
+.upgrade-row {
+    display: flex;
+    width: 100%;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
 .upgrade-btn {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 100%;
-    margin-bottom: 10px;
+    flex: 1;
     background: rgba(0,0,0,0.2);
+}
+
+.toggle-btn {
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    padding: 0;
+}
+
+.toggle-btn.active-toggle {
+    background-color: rgba(34, 197, 94, 0.2);
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.toggle-btn.inactive-toggle {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: var(--danger-color);
+    color: var(--danger-color);
 }
 
 .upgrade-btn .cost { font-size: 0.8rem; color: #94a3b8; margin-top: 5px; }
@@ -341,6 +370,12 @@ footer {
 
 /* Utilities */
 .hidden { display: none !important; }
+
+/* Desktop overrides to make panels stretch vertically to fill main area */
+.panel {
+    flex: 1;
+    overflow-y: auto;
+}
 
 /* Molecules UI */
 .molecules-list {
@@ -432,22 +467,13 @@ footer {
         overflow: hidden;
     }
 
-    .mobile-tabs {
-        display: flex;
-    }
-
-    .panel {
-        display: none;
-        flex: 1;
-        overflow-y: auto;
-    }
-
-    .panel.active {
-        display: flex;
+    .universal-tabs {
+        flex-direction: column;
     }
 
     .periodic-grid {
-        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        grid-template-columns: repeat(18, 50px);
+        grid-auto-rows: 60px;
     }
 
     .periodic-cell:hover {

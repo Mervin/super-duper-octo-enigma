@@ -2,6 +2,7 @@ const CACHE_NAME = 'atomic-idle-v1';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/atomic_idle.html',
   '/style.css',
   '/main.js',
   '/manifest.json',
