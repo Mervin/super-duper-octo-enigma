@@ -346,6 +346,7 @@ btnDig.onclick = () => {
             state.selectedTile.type = 'grass';
         }
 
+        updateFogExposure();
         updateUI();
         recalculatePaths();
     }
@@ -391,7 +392,9 @@ btnBuild.onclick = () => {
 };
 
 
-document.getElementById('btn-build-trap').onclick = () => {
+let btnTrapEl = document.getElementById('btn-build-trap');
+if (btnTrapEl) {
+    btnTrapEl.onclick = () => {
     let trapCost = 2 * (state.trapsBuiltTotal + 1);
     if (state.selectedTile && (state.selectedTile.type === 'grass' || state.selectedTile.type === 'path') && state.gold >= trapCost) {
         state.gold -= trapCost;
@@ -399,9 +402,12 @@ document.getElementById('btn-build-trap').onclick = () => {
         state.traps.push({ q: state.selectedTile.q, r: state.selectedTile.r, dmg: 50 });
         updateUI();
     }
-};
+    };
+}
 
-document.getElementById('btn-build-splash').onclick = () => {
+let btnSplashEl = document.getElementById('btn-build-splash');
+if (btnSplashEl) {
+    btnSplashEl.onclick = () => {
     let buildCost = 30 + state.towers.length * 5;
     if (state.selectedTile && state.selectedTile.type === 'grass' && state.gold >= buildCost) {
         recalculatePaths();
@@ -506,6 +512,10 @@ function drawHex(x, y, radius, fillColor, outlineColor) {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Fill background so we can see canvas bounds
+    ctx.fillStyle = '#004d40';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
     ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -627,6 +637,8 @@ function draw() {
     });
 
     ctx.restore();
+
+    // Draw UI overlay if any? Nothing for now.
 }
 
 function loop() {
@@ -1015,9 +1027,12 @@ document.getElementById('btn-upg-tower-dmg').onclick = () => {
             updateUI();
         }
     }
-};
+    };
+}
 
-document.getElementById('btn-upg-tower-range').onclick = () => {
+let upgRngEl = document.getElementById('btn-upg-tower-range');
+if (upgRngEl) {
+    upgRngEl.onclick = () => {
     if(!state.selectedTile) return;
     let tower = state.towers.find(tw => tw.r === state.selectedTile.r && tw.q === state.selectedTile.q);
     if(tower && tower.upgrades.range < 3) {
@@ -1029,9 +1044,12 @@ document.getElementById('btn-upg-tower-range').onclick = () => {
             updateUI();
         }
     }
-};
+    };
+}
 
-document.getElementById('btn-upg-tower-cd').onclick = () => {
+let upgCdEl = document.getElementById('btn-upg-tower-cd');
+if (upgCdEl) {
+    upgCdEl.onclick = () => {
     if(!state.selectedTile) return;
     let tower = state.towers.find(tw => tw.r === state.selectedTile.r && tw.q === state.selectedTile.q);
     if(tower && tower.upgrades.cd < 3) {
@@ -1044,3 +1062,4 @@ document.getElementById('btn-upg-tower-cd').onclick = () => {
         }
     }
 };
+}
