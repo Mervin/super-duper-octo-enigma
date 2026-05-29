@@ -172,7 +172,7 @@ function updateUI() {
         tileInfo.textContent = text;
 
         btnDig.disabled = t.type !== 'fog' || state.gold < 10 || !hasRevealedNeighbor;
-        btnBuild.disabled = t.type !== 'grass' || state.gold < 20 || !!state.towers.find(tw => tw.r === t.r && tw.c === t.c);
+        btnBuild.disabled = t.type !== 'grass' || state.gold < 20 || !!state.towers.find(tw => tw.r === t.r && tw.q === t.q);
     } else {
         tileInfo.textContent = "Select a tile";
         btnDig.disabled = true;
