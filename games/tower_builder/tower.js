@@ -12,6 +12,7 @@ const earnedCoinsSpan = document.getElementById('earned-coins');
 const shopCostSpan = document.getElementById('shop-cost');
 const shopBlocksDiv = document.getElementById('shop-blocks');
 
+const btnGiveUp = document.getElementById('btn-give-up');
 const btnSpeedToggle = document.getElementById('btn-speed-toggle');
 const btnNextWave = document.getElementById('btn-next-wave');
 const gameOverScreen = document.getElementById('game-over-screen');
@@ -990,6 +991,12 @@ btnNextWave.addEventListener('click', () => {
         gameState.coins += Math.floor(gameState.waveDelayTimer);
         gameState.waveDelayTimer = 0; // Starts immediately
         updateUI();
+    }
+});
+
+btnGiveUp.addEventListener('click', () => {
+    if (!gameState.gameOver) {
+        takeDamage(gameState.baseHp);
     }
 });
 
