@@ -954,14 +954,14 @@ function placeBlock() {
         for (let y = 0; y < shape.length; y++) {
             for (let x = 0; x < shape[y].length; x++) {
                 if (shape[y][x]) {
-                    let isShooterCell = shooterCells.some(c => c.x === x && c.y === y);
+                    let shooterCell = shooterCells.find(c => c.x === x && c.y === y);
 
                     gameState.grid[mouseGridX + x][mouseGridY + y] = {
                         type: 'tower',
                         color: item.color,
                         material: item.material,
                         hp: item.material.hp + (persistentState.talents.blockHpLevel * 10),
-                        shooter: isShooterCell ? item.shooter : null,
+                        shooter: shooterCell ? shooterCell.shooter : null,
                         cooldownTimer: 0
                     };
                 }
