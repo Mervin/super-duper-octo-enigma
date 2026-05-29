@@ -12,7 +12,7 @@ const earnedCoinsSpan = document.getElementById('earned-coins');
 const shopCostSpan = document.getElementById('shop-cost');
 const shopBlocksDiv = document.getElementById('shop-blocks');
 
-const btnRotate = document.getElementById('btn-rotate');
+const btnSpeedToggle = document.getElementById('btn-speed-toggle');
 const btnNextWave = document.getElementById('btn-next-wave');
 const gameOverScreen = document.getElementById('game-over-screen');
 const finalWaveSpan = document.getElementById('final-wave');
@@ -57,7 +57,8 @@ let gameState = {
     waveDelayTimer: 0,
 
     lastTime: 0,
-    gameOver: false
+    gameOver: false,
+    speedMultiplier: 1
 };
 
 // Persistent State
@@ -70,7 +71,9 @@ let persistentState = {
     talents: {
         blockHpLevel: 0,
         weaponDmgLevel: 0,
-        yieldLevel: 0 // resource gain bonus
+        yieldLevel: 0, // resource gain bonus
+        gameSpeedLevel: 0,
+        maxShootersLevel: 0
     }
 };
 
@@ -154,55 +157,84 @@ function rotateMatrix(matrix) {
 function generateShop() {
     shopBlocksDiv.innerHTML = '';
 
-    // Generate 3 random blocks
-    for(let i=0; i<3; i++) {
+    // Generate 5 random blocks
+    for(let i=0; i<5; i++) {
         // Pick unlocked shape
         const shapeIdx = persistentState.unlockedShapes[Math.floor(Math.random() * persistentState.unlockedShapes.length)];
-        const shapeOrig = SHAPES[shapeIdx];
+        let shapeOrig = SHAPES[shapeIdx];
 
         // Pick unlocked material
         const matIdx = persistentState.unlockedMaterials[Math.floor(Math.random() * persistentState.unlockedMaterials.length)];
         const material = BLOCK_MATERIALS[matIdx];
 
         // Pick unlocked weapon (or none, depending on chance)
-        let shooter = null;
         let shooterCells = [];
-        const shooterRoll = Math.random();
+
+        let validCells = [];
+        for (let y = 0; y < shapeOrig.length; y++) {
+            for (let x = 0; x < shapeOrig[y].length; x++) {
+                if (shapeOrig[y][x]) validCells.push({x, y});
+            }
+        }
+
+        const maxShooters = Math.min(validCells.length, 1 + persistentState.talents.maxShootersLevel);
 
         let numShooters = 0;
+        const shooterRoll = Math.random();
         if (shooterRoll < 0.10) {
-            numShooters = 2; // 10% chance for 2 shooters
+            numShooters = 2;
         } else if (shooterRoll < 0.80) {
-            numShooters = 1; // 70% chance for 1 shooter
-        } // else 20% chance for 0 shooters
+            numShooters = 1;
+        }
 
-        if (numShooters > 0) {
-            const shooterIdx = persistentState.unlockedShooters[Math.floor(Math.random() * persistentState.unlockedShooters.length)];
-            shooter = SHOOTER_TYPES[shooterIdx];
-
-            // Find valid cell positions
-            let validCells = [];
-            for (let y = 0; y < shapeOrig.length; y++) {
-                for (let x = 0; x < shapeOrig[y].length; x++) {
-                    if (shapeOrig[y][x]) validCells.push({x, y});
+        if (persistentState.talents.maxShootersLevel > 0) {
+            for (let s = 0; s < persistentState.talents.maxShootersLevel; s++) {
+                if (Math.random() < 0.3) {
+                    numShooters++;
                 }
             }
+        }
 
+        numShooters = Math.min(numShooters, maxShooters);
+
+        if (numShooters > 0) {
             // Assign shooters to random cells
             for (let s = 0; s < numShooters && validCells.length > 0; s++) {
                 const cellIdx = Math.floor(Math.random() * validCells.length);
-                shooterCells.push(validCells[cellIdx]);
+                const cell = validCells[cellIdx];
+
+                const shooterIdx = persistentState.unlockedShooters[Math.floor(Math.random() * persistentState.unlockedShooters.length)];
+                const shooter = SHOOTER_TYPES[shooterIdx];
+
+                shooterCells.push({ x: cell.x, y: cell.y, shooter: shooter });
                 validCells.splice(cellIdx, 1);
             }
         }
 
+        // Apply random unlocked rotation state
+        const maxRots = persistentState.unlockedRotations[shapeIdx] || 0;
+        const rotState = maxRots > 0 ? Math.floor(Math.random() * (maxRots + 1)) : 0;
+
+        let newShape = shapeOrig;
+        let newCells = shooterCells.map(c => ({...c}));
+
+        for (let r = 0; r < rotState; r++) {
+            const origH = newShape.length;
+            newShape = rotateMatrix(newShape);
+            newCells = newCells.map(c => {
+                return { x: origH - 1 - c.y, y: c.x, shooter: c.shooter };
+            });
+        }
+
         const blockData = {
             shapeIdx: shapeIdx,
-            shapeOrig: shapeOrig,
-            shooter: shooter,
-            shooterCells: shooterCells,
+            shapeOrig: newShape,
+            shape: newShape,
+            shooterCells: newCells,
+            currentShooterCells: newCells,
             material: material,
-            color: material.color
+            color: material.color,
+            rot: rotState
         };
 
         const itemDiv = document.createElement('div');
@@ -217,15 +249,20 @@ function generateShop() {
 
         const label = document.createElement('span');
         label.style.fontSize = '0.8rem';
-        label.textContent = material.name + (shooter ? ` + ${shooter.name}` : '');
+
+        let labelText = material.name;
+        if (shooterCells.length > 0) {
+            const shooterNames = [...new Set(shooterCells.map(sc => sc.shooter.name))];
+            labelText += ' + ' + shooterNames.join(', ');
+        }
+        label.textContent = labelText;
 
         itemDiv.appendChild(c);
         itemDiv.appendChild(label);
 
         itemDiv.addEventListener('click', () => {
             if (gameState.materials >= gameState.shopCost) {
-                // When we hold it, we reset rotation to 0
-                gameState.selectedShopItem = { ...blockData, shape: blockData.shapeOrig, rot: 0 };
+                gameState.selectedShopItem = { ...blockData };
             }
         });
 
@@ -236,7 +273,7 @@ function generateShop() {
 function drawMiniBlock(canvas, data) {
     const cx = canvas.getContext('2d');
     const cs = 15;
-    const shape = data.shapeOrig; // Draw the unrotated original shape in shop
+    const shape = data.shape; // Draw the rotated shape in shop
 
     const w = shape[0].length * cs;
     const h = shape.length * cs;
@@ -254,9 +291,9 @@ function drawMiniBlock(canvas, data) {
                 cx.strokeRect(offsetX + x*cs, offsetY + y*cs, cs, cs);
 
                 // Draw shooter pip if this cell has a shooter
-                let hasShooter = data.shooterCells.some(sc => sc.x === x && sc.y === y);
-                if (hasShooter && data.shooter) {
-                    cx.fillStyle = data.shooter.color;
+                let shooterCell = data.shooterCells.find(sc => sc.x === x && sc.y === y);
+                if (shooterCell && shooterCell.shooter) {
+                    cx.fillStyle = shooterCell.shooter.color;
                     cx.beginPath();
                     cx.arc(offsetX + x*cs + cs/2, offsetY + y*cs + cs/2, cs/3, 0, Math.PI*2);
                     cx.fill();
@@ -281,135 +318,166 @@ function updateUI() {
     persistentCoinsCountSpan.textContent = persistentState.coins;
     talentsCoinsDisplay.textContent = persistentState.coins;
 
+    if (persistentState.talents.gameSpeedLevel > 0) {
+        btnSpeedToggle.classList.remove('hidden');
+        btnSpeedToggle.textContent = `Speed: ${gameState.speedMultiplier}x`;
+    } else {
+        btnSpeedToggle.classList.add('hidden');
+    }
+
     renderTalents();
 }
 
-function renderTalents() {
-    talentsGrid.innerHTML = '';
+// Helper to check if a shape is unlocked
+function isShapeUnlocked(idx) {
+    return persistentState.unlockedShapes.includes(idx);
+}
 
-    // Abstracted helper to create a talent card
-    const createCard = (title, desc, cost, isPurchased, onBuy) => {
-        const div = document.createElement('div');
-        div.className = `talent-card ${isPurchased ? 'purchased' : ''}`;
+// Helper to check if a shooter is unlocked
+function isShooterUnlocked(idx) {
+    return persistentState.unlockedShooters.includes(idx);
+}
+
+// Helper to check if material is unlocked
+function isMaterialUnlocked(idx) {
+    return persistentState.unlockedMaterials.includes(idx);
+}
+
+const TALENT_TREE = [
+    // --- Stats Branch (Center) ---
+    { id: 'hp1', x: 400, y: 50, icon: '🧱', title: 'Block HP', desc: 'Increases base HP of blocks.', cost: 20, isPurchased: () => persistentState.talents.blockHpLevel > 0, onBuy: () => persistentState.talents.blockHpLevel++, reqs: [] },
+    { id: 'hp2', x: 400, y: 150, icon: '🧱', title: 'Block HP II', desc: 'Further increases base HP.', cost: 30, isPurchased: () => persistentState.talents.blockHpLevel > 1, onBuy: () => persistentState.talents.blockHpLevel++, reqs: ['hp1'] },
+
+    { id: 'dmg1', x: 500, y: 50, icon: '⚔️', title: 'Damage', desc: 'Increases shooter damage.', cost: 50, isPurchased: () => persistentState.talents.weaponDmgLevel > 0, onBuy: () => persistentState.talents.weaponDmgLevel++, reqs: [] },
+    { id: 'dmg2', x: 500, y: 150, icon: '⚔️', title: 'Damage II', desc: 'Further increases damage.', cost: 75, isPurchased: () => persistentState.talents.weaponDmgLevel > 1, onBuy: () => persistentState.talents.weaponDmgLevel++, reqs: ['dmg1'] },
+
+    { id: 'yield1', x: 450, y: 250, icon: '💰', title: 'Yield', desc: 'Higher drop chance for materials/coins.', cost: 100, isPurchased: () => persistentState.talents.yieldLevel > 0, onBuy: () => persistentState.talents.yieldLevel++, reqs: ['hp2', 'dmg2'] },
+    { id: 'speed1', x: 450, y: 350, icon: '⏩', title: 'Game Speed', desc: 'Unlocks 2x game speed toggle.', cost: 150, isPurchased: () => persistentState.talents.gameSpeedLevel > 0, onBuy: () => persistentState.talents.gameSpeedLevel++, reqs: ['yield1'] },
+    { id: 'speed2', x: 450, y: 450, icon: '⚡', title: 'Game Speed II', desc: 'Unlocks 3x game speed toggle.', cost: 300, isPurchased: () => persistentState.talents.gameSpeedLevel > 1, onBuy: () => persistentState.talents.gameSpeedLevel++, reqs: ['speed1'] },
+
+    // --- Shapes Branch (Left) ---
+    { id: 'shapeT', x: 250, y: 50, icon: '🟪', title: 'T-Shape', desc: 'Unlocks the T shape.', cost: 50, isPurchased: () => isShapeUnlocked(2), onBuy: () => persistentState.unlockedShapes.push(2), reqs: [] },
+    { id: 'shapeL', x: 150, y: 150, icon: '🟧', title: 'L-Shape', desc: 'Unlocks the L shape.', cost: 50, isPurchased: () => isShapeUnlocked(3), onBuy: () => persistentState.unlockedShapes.push(3), reqs: ['shapeT'] },
+    { id: 'shapeJ', x: 350, y: 150, icon: '🟦', title: 'J-Shape', desc: 'Unlocks the J shape.', cost: 50, isPurchased: () => isShapeUnlocked(4), onBuy: () => persistentState.unlockedShapes.push(4), reqs: ['shapeT'] },
+
+    { id: 'shapeS', x: 150, y: 250, icon: '🟩', title: 'S-Shape', desc: 'Unlocks the S shape.', cost: 50, isPurchased: () => isShapeUnlocked(5), onBuy: () => persistentState.unlockedShapes.push(5), reqs: ['shapeL'] },
+    { id: 'shapeZ', x: 350, y: 250, icon: '🟥', title: 'Z-Shape', desc: 'Unlocks the Z shape.', cost: 50, isPurchased: () => isShapeUnlocked(6), onBuy: () => persistentState.unlockedShapes.push(6), reqs: ['shapeJ'] },
+
+    { id: 'rot1', x: 250, y: 350, icon: '🔄', title: 'Rotations', desc: 'Shop items can appear rotated.', cost: 100, isPurchased: () => persistentState.unlockedRotations[2] > 0, onBuy: () => {
+        // Unlock rotation 1 for all unlocked shapes
+        for(let i=1; i<SHAPES.length; i++) persistentState.unlockedRotations[i] = Math.max(persistentState.unlockedRotations[i] || 0, 1);
+    }, reqs: ['shapeS', 'shapeZ'] },
+    { id: 'rot2', x: 250, y: 450, icon: '🔁', title: 'Full Rotations', desc: 'Shop items can appear fully rotated.', cost: 200, isPurchased: () => persistentState.unlockedRotations[2] > 2, onBuy: () => {
+        // Unlock full rotation (3) for all unlocked shapes
+        for(let i=1; i<SHAPES.length; i++) persistentState.unlockedRotations[i] = 3;
+    }, reqs: ['rot1'] },
+
+    // --- Weapons Branch (Right) ---
+    { id: 'matStone', x: 650, y: 50, icon: '🪨', title: 'Stone', desc: 'Blocks can spawn as Stone.', cost: 150, isPurchased: () => isMaterialUnlocked(1), onBuy: () => persistentState.unlockedMaterials.push(1), reqs: [] },
+
+    { id: 'wepSniper', x: 550, y: 150, icon: '🏹', title: 'Sniper', desc: 'Allows Sniper shooters to appear.', cost: 100, isPurchased: () => isShooterUnlocked(1), onBuy: () => persistentState.unlockedShooters.push(1), reqs: ['matStone'] },
+    { id: 'wepSplash', x: 750, y: 150, icon: '💣', title: 'Splash', desc: 'Allows Splash shooters to appear.', cost: 200, isPurchased: () => isShooterUnlocked(2), onBuy: () => persistentState.unlockedShooters.push(2), reqs: ['matStone'] },
+
+    { id: 'wepRapid', x: 650, y: 250, icon: '🔫', title: 'Rapid', desc: 'Allows Rapid shooters to appear.', cost: 300, isPurchased: () => isShooterUnlocked(3), onBuy: () => persistentState.unlockedShooters.push(3), reqs: ['wepSniper', 'wepSplash'] },
+
+    { id: 'matIron', x: 650, y: 350, icon: '⚙️', title: 'Iron', desc: 'Blocks can spawn as Iron.', cost: 300, isPurchased: () => isMaterialUnlocked(2), onBuy: () => persistentState.unlockedMaterials.push(2), reqs: ['wepRapid'] },
+
+    { id: 'multi1', x: 650, y: 450, icon: '🎲', title: 'Multi Shooter', desc: 'Blocks can have up to 2 shooters.', cost: 400, isPurchased: () => persistentState.talents.maxShootersLevel > 0, onBuy: () => persistentState.talents.maxShootersLevel++, reqs: ['matIron'] },
+    { id: 'multi2', x: 650, y: 550, icon: '🎰', title: 'Multi Shooter II', desc: 'Blocks can have up to 3 shooters.', cost: 600, isPurchased: () => persistentState.talents.maxShootersLevel > 1, onBuy: () => persistentState.talents.maxShootersLevel++, reqs: ['multi1'] }
+];
+
+function renderTalents() {
+    talentsNodesWrapper.innerHTML = '';
+
+    // Clear existing lines
+    while (talentsLines.firstChild) {
+        talentsLines.removeChild(talentsLines.firstChild);
+    }
+
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    TALENT_TREE.forEach(talent => {
+        // Draw lines to requirements
+        talent.reqs.forEach(reqId => {
+            const req = TALENT_TREE.find(t => t.id === reqId);
+            if (req) {
+                const line = document.createElementNS(svgNS, 'line');
+                line.setAttribute('x1', req.x);
+                line.setAttribute('y1', req.y);
+                line.setAttribute('x2', talent.x);
+                line.setAttribute('y2', talent.y);
+
+                // Color line based on requirement met
+                const isReqMet = req.isPurchased();
+                line.setAttribute('stroke', isReqMet ? '#4ade80' : '#334155');
+                line.setAttribute('stroke-width', '3');
+                talentsLines.appendChild(line);
+            }
+        });
+
+        // Create node
+        const isPurchased = talent.isPurchased();
+        const reqsMet = talent.reqs.every(reqId => TALENT_TREE.find(t => t.id === reqId).isPurchased());
+        const isLocked = !isPurchased && !reqsMet;
+
+        const node = document.createElement('div');
+        node.className = `talents-node ${isPurchased ? 'purchased' : ''} ${isLocked ? 'locked' : ''}`;
+        node.style.left = `${talent.x}px`;
+        node.style.top = `${talent.y}px`;
+        node.textContent = talent.icon;
+
+        // Tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'talent-tooltip';
 
         const h4 = document.createElement('h4');
-        h4.textContent = title;
+        h4.textContent = talent.title;
+        tooltip.appendChild(h4);
 
         const p = document.createElement('p');
-        p.textContent = desc;
-
-        div.appendChild(h4);
-        div.appendChild(p);
+        p.textContent = talent.desc;
+        tooltip.appendChild(p);
 
         if (!isPurchased) {
-            const btn = document.createElement('button');
-            btn.className = 'action-btn small';
-            btn.textContent = `Buy (${cost}c)`;
-            btn.disabled = persistentState.coins < cost;
-            btn.onclick = () => {
-                if (persistentState.coins >= cost) {
-                    persistentState.coins -= cost;
-                    onBuy();
+            const costSpan = document.createElement('div');
+            costSpan.className = 'cost';
+            costSpan.textContent = `Cost: ${talent.cost}c`;
+            if (persistentState.coins < talent.cost) costSpan.style.color = '#ef4444';
+            tooltip.appendChild(costSpan);
+
+            if (isLocked) {
+                const lockSpan = document.createElement('div');
+                lockSpan.style.color = '#ef4444';
+                lockSpan.style.fontSize = '0.8rem';
+                lockSpan.style.marginTop = '5px';
+                lockSpan.textContent = 'Locked (Requires preceding node)';
+                tooltip.appendChild(lockSpan);
+            }
+        } else {
+            const purSpan = document.createElement('div');
+            purSpan.style.color = '#4ade80';
+            purSpan.style.fontWeight = 'bold';
+            purSpan.style.marginTop = '5px';
+            purSpan.textContent = 'Purchased';
+            tooltip.appendChild(purSpan);
+        }
+
+        node.appendChild(tooltip);
+
+        // Click handler
+        if (!isPurchased && reqsMet) {
+            node.addEventListener('click', () => {
+                if (persistentState.coins >= talent.cost) {
+                    persistentState.coins -= talent.cost;
+                    talent.onBuy();
                     savePersistentState();
                     updateUI();
                 }
-            };
-            div.appendChild(btn);
-        } else {
-            const span = document.createElement('span');
-            span.style.color = '#22c55e';
-            span.textContent = 'Purchased';
-            div.appendChild(span);
+            });
         }
 
-        talentsGrid.appendChild(div);
-    };
-
-    // 1. Shapes & Rotations
-    const SHAPE_NAMES = ['O', 'I', 'T', 'L', 'J', 'S', 'Z'];
-    for (let i = 2; i < SHAPES.length; i++) { // O (0) and I (1) unlocked by default
-        const isUnlocked = persistentState.unlockedShapes.includes(i);
-        createCard(
-            `Unlock ${SHAPE_NAMES[i]} Shape`,
-            `Adds the ${SHAPE_NAMES[i]} shape to the shop`,
-            50,
-            isUnlocked,
-            () => persistentState.unlockedShapes.push(i)
-        );
-    }
-
-    // Rotations (available for unlocked shapes)
-    for (let i of persistentState.unlockedShapes) {
-        if (i === 0) continue; // O shape doesn't need rotation
-        const currentRots = persistentState.unlockedRotations[i] || 0;
-        if (currentRots < 3) {
-            createCard(
-                `${SHAPE_NAMES[i]} Rotation +1`,
-                `Unlock rotation state ${currentRots + 1} for ${SHAPE_NAMES[i]}`,
-                30 + (currentRots * 20),
-                false,
-                () => persistentState.unlockedRotations[i] = (persistentState.unlockedRotations[i] || 0) + 1
-            );
-        }
-    }
-
-    // 2. Weapons
-    for (let i = 1; i < SHOOTER_TYPES.length; i++) {
-        const isUnlocked = persistentState.unlockedShooters.includes(i);
-        createCard(
-            `Unlock ${SHOOTER_TYPES[i].name}`,
-            `Allows ${SHOOTER_TYPES[i].name} shooters to appear`,
-            100 * i,
-            isUnlocked,
-            () => persistentState.unlockedShooters.push(i)
-        );
-    }
-
-    // 3. Materials
-    for (let i = 1; i < BLOCK_MATERIALS.length; i++) {
-        const isUnlocked = persistentState.unlockedMaterials.includes(i);
-        createCard(
-            `Unlock ${BLOCK_MATERIALS[i].name}`,
-            `Blocks can spawn as ${BLOCK_MATERIALS[i].name} (More HP)`,
-            150 * i,
-            isUnlocked,
-            () => persistentState.unlockedMaterials.push(i)
-        );
-    }
-
-    // 4. Stats
-    const hpLvl = persistentState.talents.blockHpLevel;
-    if (hpLvl < 10) {
-        createCard(
-            `Block HP +10 (Lvl ${hpLvl})`,
-            `Increases base HP of all placed blocks.`,
-            20 + (hpLvl * 10),
-            false,
-            () => persistentState.talents.blockHpLevel++
-        );
-    }
-
-    const dmgLvl = persistentState.talents.weaponDmgLevel;
-    if (dmgLvl < 10) {
-        createCard(
-            `Weapon Dmg +2 (Lvl ${dmgLvl})`,
-            `Increases damage of all shooters.`,
-            50 + (dmgLvl * 25),
-            false,
-            () => persistentState.talents.weaponDmgLevel++
-        );
-    }
-
-    const yieldLvl = persistentState.talents.yieldLevel;
-    if (yieldLvl < 5) {
-        createCard(
-            `Resource Yield (Lvl ${yieldLvl})`,
-            `Enemies have higher chance to drop materials and coins.`,
-            100 + (yieldLvl * 100),
-            false,
-            () => persistentState.talents.yieldLevel++
-        );
-    }
+        talentsNodesWrapper.appendChild(node);
+    });
 }
 
 // Wave Logic
@@ -506,8 +574,6 @@ function update(dt) {
             gameState.waveActive = false;
             gameState.wave++;
             gameState.waveDelayTimer = 5.0; // 5 sec between waves
-            // Increase shop cost slightly every few waves
-            if (gameState.wave % 3 === 0) gameState.shopCost += 5;
             updateUI();
         }
     } else {
@@ -537,8 +603,8 @@ function update(dt) {
         // Check grid only if it's initialized
         let gridReady = gameState.grid && gameState.grid.length > 0;
 
-        // Flying enemies bypass blocks
-        if (!e.isFlying && gridReady && gx >= 0 && gx < GRID_W && gy >= 0 && gy < GRID_H) {
+        // Check collision for all enemies (flying no longer bypasses blocks)
+        if (gridReady && gx >= 0 && gx < GRID_W && gy >= 0 && gy < GRID_H) {
             let block = gameState.grid[gx][gy];
             if (block) {
                 blocked = true;
@@ -694,9 +760,11 @@ function damageEnemy(index, amt) {
             gameState.materials += Math.floor(10 + yieldBonus * 20);
             gameState.coins += Math.floor(5 + yieldBonus * 10);
         } else {
-            // Regular enemies drop slightly more now to make early game easier
-            if (Math.random() < (0.7 + yieldBonus)) gameState.materials += 1; // Was 0.5
-            if (Math.random() < (0.4 + yieldBonus)) gameState.coins += 1; // Was 0.3
+            // Guaranteed material drops so player can build at least one block per wave
+            gameState.materials += 1 + Math.floor(Math.random() * 2); // 1-2 materials
+            if (Math.random() < yieldBonus) gameState.materials += 1;
+
+            if (Math.random() < (0.4 + yieldBonus)) gameState.coins += 1;
         }
 
         updateUI();
@@ -737,25 +805,32 @@ function draw() {
         for (let y = 0; y < GRID_H; y++) {
             const block = gameState.grid[x][y];
             if (block) {
-                ctx.fillStyle = block.color;
-                ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                ctx.strokeStyle = '#000';
-                ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                if (block.type === 'base') {
+                    ctx.fillStyle = block.color;
+                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    ctx.strokeStyle = '#000';
+                    ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                } else if (block.type === 'tower') {
+                    ctx.fillStyle = block.color;
+                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    ctx.strokeStyle = '#000';
+                    ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
-                if (block.shooter) {
-                    ctx.fillStyle = block.shooter.color;
-                    ctx.beginPath();
-                    ctx.arc(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE/3, 0, Math.PI*2);
-                    ctx.fill();
-                }
+                    if (block.shooter) {
+                        ctx.fillStyle = block.shooter.color;
+                        ctx.beginPath();
+                        ctx.arc(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE/3, 0, Math.PI*2);
+                        ctx.fill();
+                    }
 
-                // Draw HP bar for damaged blocks
-                if (block.type === 'tower' && block.hp < block.material.hp + (persistentState.talents.blockHpLevel * 10)) {
-                    const maxHp = block.material.hp + (persistentState.talents.blockHpLevel * 10);
-                    ctx.fillStyle = '#ef4444';
-                    ctx.fillRect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, CELL_SIZE - 4, 4);
-                    ctx.fillStyle = '#22c55e';
-                    ctx.fillRect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, (CELL_SIZE - 4) * (block.hp / maxHp), 4);
+                    // Draw HP bar for damaged blocks
+                    if (block.hp < block.material.hp + (persistentState.talents.blockHpLevel * 10)) {
+                        const maxHp = block.material.hp + (persistentState.talents.blockHpLevel * 10);
+                        ctx.fillStyle = '#ef4444';
+                        ctx.fillRect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, CELL_SIZE - 4, 4);
+                        ctx.fillStyle = '#22c55e';
+                        ctx.fillRect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, (CELL_SIZE - 4) * (block.hp / maxHp), 4);
+                    }
                 }
             }
         }
@@ -775,9 +850,9 @@ function draw() {
                     ctx.fillStyle = valid ? '#4ade80' : '#f87171'; // Green or Red
                     ctx.fillRect((mouseGridX + x) * CELL_SIZE, (mouseGridY + y) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
-                    let isShooterCell = shooterCells.some(c => c.x === x && c.y === y);
-                    if (isShooterCell && item.shooter) {
-                        ctx.fillStyle = item.shooter.color;
+                    let shooterCell = shooterCells.find(c => c.x === x && c.y === y);
+                    if (shooterCell && shooterCell.shooter) {
+                        ctx.fillStyle = shooterCell.shooter.color;
                         ctx.beginPath();
                         ctx.arc((mouseGridX + x) * CELL_SIZE + CELL_SIZE/2, (mouseGridY + y) * CELL_SIZE + CELL_SIZE/2, CELL_SIZE/3, 0, Math.PI*2);
                         ctx.fill();
@@ -852,51 +927,7 @@ canvas.addEventListener('click', () => {
 
 canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    if (gameState.selectedShopItem) {
-        rotateSelectedBlock();
-    }
 });
-
-btnRotate.addEventListener('click', () => {
-    if (gameState.selectedShopItem) rotateSelectedBlock();
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'r' || e.key === 'R') {
-        if (gameState.selectedShopItem) rotateSelectedBlock();
-    }
-});
-
-function rotateSelectedBlock() {
-    const item = gameState.selectedShopItem;
-    const maxRots = persistentState.unlockedRotations[item.shapeIdx] || 0;
-
-    // Calculate how many times it has been rotated from the original shape
-    // item.rot stores the current rotation state (0, 1, 2, 3)
-    if (maxRots === 0) return; // Cannot rotate
-
-    item.rot = (item.rot + 1) % 4;
-    if (item.rot > maxRots) {
-        item.rot = 0; // Reset to original if we exceed unlocked rotations
-    }
-
-    // Re-apply rotations from original shape based on new item.rot
-    let newShape = item.shapeOrig;
-    let newCells = item.shooterCells.map(c => ({...c}));
-
-    for (let r = 0; r < item.rot; r++) {
-        // We also need to rotate the coordinates of the shooters
-        // rotateMatrix rotates clockwise: newX = origH - 1 - origY, newY = origX
-        const origH = newShape.length;
-        newShape = rotateMatrix(newShape);
-        newCells = newCells.map(c => {
-            return { x: origH - 1 - c.y, y: c.x };
-        });
-    }
-
-    item.shape = newShape;
-    item.currentShooterCells = newCells;
-}
 
 function canPlace(shape, gx, gy) {
     // Check bounds
@@ -932,6 +963,9 @@ function placeBlock() {
         // Pay cost
         gameState.materials -= gameState.shopCost;
 
+        // Increase cost
+        gameState.shopCost += 5;
+
         // Ensure we have currentShooterCells calculated (if not rotated yet, it's the original)
         let shooterCells = item.currentShooterCells || item.shooterCells;
 
@@ -960,6 +994,15 @@ function placeBlock() {
     }
 }
 
+btnSpeedToggle.addEventListener('click', () => {
+    const maxSpeed = 1 + persistentState.talents.gameSpeedLevel;
+    gameState.speedMultiplier += 1;
+    if (gameState.speedMultiplier > maxSpeed) {
+        gameState.speedMultiplier = 1;
+    }
+    updateUI();
+});
+
 btnNextWave.addEventListener('click', () => {
     if (!gameState.waveActive && gameState.waveDelayTimer > 0) {
         // Bonus for early call
@@ -987,6 +1030,7 @@ btnStartRun.addEventListener('click', () => {
     gameState.waveActive = false;
     gameState.gameOver = false;
     gameState.waveDelayTimer = 5.0;
+    gameState.speedMultiplier = 1;
 
     initGrid();
     generateShop();
@@ -1023,8 +1067,12 @@ btnReturnMenu.addEventListener('click', () => {
 
 // Main Loop Wrapper
 function loop(timestamp) {
-    const dt = (timestamp - gameState.lastTime) / 1000 || 0;
+    let dt = (timestamp - gameState.lastTime) / 1000 || 0;
     gameState.lastTime = timestamp;
+
+    if (gameState.speedMultiplier > 1) {
+        dt *= gameState.speedMultiplier;
+    }
 
     update(dt);
     draw();
