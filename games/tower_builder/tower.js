@@ -387,96 +387,77 @@ const TALENT_TREE = [
 ];
 
 function renderTalents() {
-    talentsNodesWrapper.innerHTML = '';
-
-    // Clear existing lines
-    while (talentsLines.firstChild) {
-        talentsLines.removeChild(talentsLines.firstChild);
-    }
-
-    const svgNS = "http://www.w3.org/2000/svg";
+    talentsGrid.innerHTML = '';
 
     TALENT_TREE.forEach(talent => {
-        // Draw lines to requirements
-        talent.reqs.forEach(reqId => {
-            const req = TALENT_TREE.find(t => t.id === reqId);
-            if (req) {
-                const line = document.createElementNS(svgNS, 'line');
-                line.setAttribute('x1', req.x);
-                line.setAttribute('y1', req.y);
-                line.setAttribute('x2', talent.x);
-                line.setAttribute('y2', talent.y);
-
-                // Color line based on requirement met
-                const isReqMet = req.isPurchased();
-                line.setAttribute('stroke', isReqMet ? '#4ade80' : '#334155');
-                line.setAttribute('stroke-width', '3');
-                talentsLines.appendChild(line);
-            }
-        });
-
-        // Create node
         const isPurchased = talent.isPurchased();
         const reqsMet = talent.reqs.every(reqId => TALENT_TREE.find(t => t.id === reqId).isPurchased());
         const isLocked = !isPurchased && !reqsMet;
 
-        const node = document.createElement('div');
-        node.className = `talents-node ${isPurchased ? 'purchased' : ''} ${isLocked ? 'locked' : ''}`;
-        node.style.left = `${talent.x}px`;
-        node.style.top = `${talent.y}px`;
-        node.textContent = talent.icon;
+        const card = document.createElement('div');
+        card.className = `talent-card ${isPurchased ? 'purchased' : ''} ${isLocked ? 'locked' : ''}`;
 
-        // Tooltip
-        const tooltip = document.createElement('div');
-        tooltip.className = 'talent-tooltip';
+        const icon = document.createElement('div');
+        icon.style.fontSize = '2rem';
+        icon.style.marginBottom = '10px';
+        icon.textContent = talent.icon;
+        card.appendChild(icon);
 
         const h4 = document.createElement('h4');
         h4.textContent = talent.title;
-        tooltip.appendChild(h4);
+        card.appendChild(h4);
 
         const p = document.createElement('p');
         p.textContent = talent.desc;
-        tooltip.appendChild(p);
+        card.appendChild(p);
 
         if (!isPurchased) {
-            const costSpan = document.createElement('div');
-            costSpan.className = 'cost';
-            costSpan.textContent = `Cost: ${talent.cost}c`;
-            if (persistentState.coins < talent.cost) costSpan.style.color = '#ef4444';
-            tooltip.appendChild(costSpan);
+            const costP = document.createElement('p');
+            costP.style.fontWeight = 'bold';
+            costP.textContent = `Cost: ${talent.cost} Coins`;
+            if (persistentState.coins < talent.cost) {
+                costP.style.color = '#ef4444';
+            } else {
+                costP.style.color = '#fcd34d';
+            }
+            card.appendChild(costP);
 
             if (isLocked) {
-                const lockSpan = document.createElement('div');
-                lockSpan.style.color = '#ef4444';
-                lockSpan.style.fontSize = '0.8rem';
-                lockSpan.style.marginTop = '5px';
-                lockSpan.textContent = 'Locked (Requires preceding node)';
-                tooltip.appendChild(lockSpan);
+                const reqNames = talent.reqs.map(reqId => TALENT_TREE.find(t => t.id === reqId).title).join(', ');
+                const reqP = document.createElement('p');
+                reqP.style.color = '#ef4444';
+                reqP.style.fontSize = '0.8rem';
+                reqP.textContent = `Requires: ${reqNames}`;
+                card.appendChild(reqP);
+            } else {
+                const buyBtn = document.createElement('button');
+                buyBtn.className = 'action-btn small';
+                buyBtn.textContent = 'Buy';
+                buyBtn.disabled = persistentState.coins < talent.cost;
+                if (buyBtn.disabled) {
+                    buyBtn.style.opacity = '0.5';
+                    buyBtn.style.cursor = 'not-allowed';
+                }
+
+                buyBtn.addEventListener('click', () => {
+                    if (persistentState.coins >= talent.cost) {
+                        persistentState.coins -= talent.cost;
+                        talent.onBuy();
+                        savePersistentState();
+                        updateUI();
+                    }
+                });
+                card.appendChild(buyBtn);
             }
         } else {
-            const purSpan = document.createElement('div');
-            purSpan.style.color = '#4ade80';
-            purSpan.style.fontWeight = 'bold';
-            purSpan.style.marginTop = '5px';
-            purSpan.textContent = 'Purchased';
-            tooltip.appendChild(purSpan);
+            const purP = document.createElement('p');
+            purP.style.color = '#4ade80';
+            purP.style.fontWeight = 'bold';
+            purP.textContent = 'Purchased';
+            card.appendChild(purP);
         }
 
-        node.appendChild(tooltip);
-
-        // Click handler
-        if (!isPurchased && reqsMet) {
-            node.addEventListener('click', () => {
-                if (persistentState.coins >= talent.cost) {
-                    persistentState.coins -= talent.cost;
-                    talent.onBuy();
-                    savePersistentState();
-                    updateUI();
-                }
-            });
-        }
-
-        talentsNodesWrapper.appendChild(node);
+        talentsGrid.appendChild(card);
     });
 }
 
