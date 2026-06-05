@@ -12,6 +12,7 @@ const earnedCoinsSpan = document.getElementById('earned-coins');
 const shopCostSpan = document.getElementById('shop-cost');
 const shopBlocksDiv = document.getElementById('shop-blocks');
 
+const btnGiveUp = document.getElementById('btn-give-up');
 const btnSpeedToggle = document.getElementById('btn-speed-toggle');
 const btnNextWave = document.getElementById('btn-next-wave');
 const gameOverScreen = document.getElementById('game-over-screen');
@@ -954,14 +955,14 @@ function placeBlock() {
         for (let y = 0; y < shape.length; y++) {
             for (let x = 0; x < shape[y].length; x++) {
                 if (shape[y][x]) {
-                    let isShooterCell = shooterCells.some(c => c.x === x && c.y === y);
+                    let shooterCell = shooterCells.find(c => c.x === x && c.y === y);
 
                     gameState.grid[mouseGridX + x][mouseGridY + y] = {
                         type: 'tower',
                         color: item.color,
                         material: item.material,
                         hp: item.material.hp + (persistentState.talents.blockHpLevel * 10),
-                        shooter: isShooterCell ? item.shooter : null,
+                        shooter: shooterCell ? shooterCell.shooter : null,
                         cooldownTimer: 0
                     };
                 }
@@ -990,6 +991,12 @@ btnNextWave.addEventListener('click', () => {
         gameState.coins += Math.floor(gameState.waveDelayTimer);
         gameState.waveDelayTimer = 0; // Starts immediately
         updateUI();
+    }
+});
+
+btnGiveUp.addEventListener('click', () => {
+    if (!gameState.gameOver) {
+        takeDamage(gameState.baseHp);
     }
 });
 
