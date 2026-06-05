@@ -44,6 +44,11 @@
     <main>
         <div id="game-container">
             <canvas id="game-canvas" width="600" height="600"></canvas>
+            <div id="camera-controls" style="position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 5px;">
+                <button id="btn-zoom-in" style="width: 30px; height: 30px; padding: 0; margin: 0; font-size: 16px;">+</button>
+                <button id="btn-zoom-out" style="width: 30px; height: 30px; padding: 0; margin: 0; font-size: 16px;">-</button>
+                <button id="btn-zoom-reset" style="width: 30px; height: 30px; padding: 0; margin: 0; font-size: 16px;">R</button>
+            </div>
             <div id="tooltip" class="tooltip"></div>
         </div>
 
@@ -52,7 +57,16 @@
                 <h3 data-i18n="actions">Actions</h3>
                 <div id="tile-info" style="min-height: 40px; margin-bottom: 10px; color: #aaa;">Select a tile</div>
                 <button id="btn-dig" disabled data-i18n="digPath">Dig (10g)</button>
-                <button id="btn-build-tower" disabled data-i18n="buildTower">Build Tower (20g)</button>
+                <button id="btn-build-tower" disabled data-i18n="buildTower">Build Tower</button>
+                <button id="btn-build-splash" disabled style="display: none; background: #e67e22;">Build Splash Tower</button>
+                <button id="btn-build-trap" disabled style="display: none; background: #c0392b;">Build Trap</button>
+
+                <div id="tower-upgrades-panel" style="display: none; margin-top: 10px; border-top: 1px dashed #34495e; padding-top: 10px;">
+                    <h4>Tower Upgrades</h4>
+                    <button id="btn-upg-tower-dmg">Upg Dmg (+2) - 10g</button>
+                    <button id="btn-upg-tower-range">Upg Range (+1) - 15g</button>
+                    <button id="btn-upg-tower-cd">Upg Speed (-10%) - 10g</button>
+                </div>
             </div>
 
             <div class="panel-section">
@@ -60,13 +74,88 @@
                 <button id="btn-start-wave" data-i18n="startWave">Start Wave</button>
             </div>
 
+
             <div class="panel-section">
-                <h3><span data-i18n="permaUpgrades">Perma Upgrades</span> (Relics: <span id="relics-display">0</span>)</h3>
-                <button id="btn-upg-dmg" data-i18n="upgDmg">Tower Dmg +1 (1 Relic)</button>
+                <h3>Talents</h3>
+                <button id="btn-open-talents" style="background: #8e44ad;">Open Talent Tree</button>
             </div>
+
         </aside>
     </main>
 
     <script src="script.js"></script>
+
+    <!-- Talent Modal Overlay -->
+    <div id="talent-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: #2c3e50; padding: 20px; border-radius: 10px; width: 600px; max-width: 90%; color: white; border: 2px solid #34495e;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #34495e; padding-bottom: 10px; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Talent Tree (Relics: <span id="modal-relics-display">0</span>)</h2>
+                <button id="btn-close-talents" style="width: auto; background: #e74c3c;">Close</button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="tab-btn" data-target="tab-tower" style="background: #2980b9;">Tower</button>
+                <button class="tab-btn" data-target="tab-base" style="background: #34495e;">Base</button>
+                <button class="tab-btn" data-target="tab-enemies" style="background: #34495e;">Enemies</button>
+            </div>
+
+            <!-- Tower Tab -->
+            <div id="tab-tower" class="talent-tab" style="display: block;">
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Sharpened Projectiles (<span id="t-dmg-lvl">0</span>/5)</strong> - +1 Base Damage<br>
+                    <button class="btn-talent" data-id="t-dmg" data-max="5" data-cost="[1,2,3,4,5]">Upgrade (Cost: <span class="cost-display">1</span>)</button>
+                </div>
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Eagle Eye (<span id="t-rng-lvl">0</span>/2)</strong> - +1 Base Range<br>
+                    <button class="btn-talent" data-id="t-rng" data-max="2" data-cost="[3,5]">Upgrade (Cost: <span class="cost-display">3</span>)</button>
+                </div>
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Rapid Fire (<span id="t-cd-lvl">0</span>/3)</strong> - -10% Base Cooldown<br>
+                    <button class="btn-talent" data-id="t-cd" data-max="3" data-cost="[2,4,6]">Upgrade (Cost: <span class="cost-display">2</span>)</button>
+                </div>
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Artillery Tower (<span id="t-art-lvl">0</span>/1)</strong> - Unlocks Splash Tower<br>
+                    <button class="btn-talent" data-id="t-art" data-max="1" data-cost="[10]">Unlock (Cost: <span class="cost-display">10</span>)</button>
+                </div>
+            </div>
+
+            <!-- Base Tab -->
+            <div id="tab-base" class="talent-tab" style="display: none;">
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Reinforced Walls (<span id="b-hp-lvl">0</span>/5)</strong> - +5 Base Lives<br>
+                    <button class="btn-talent" data-id="b-hp" data-max="5" data-cost="[1,2,3,4,5]">Upgrade (Cost: <span class="cost-display">1</span>)</button>
+                </div>
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Gold Scavenging (<span id="b-gold-lvl">0</span>/5)</strong> - +10% Gold from enemies<br>
+                    <button class="btn-talent" data-id="b-gold" data-max="5" data-cost="[2,4,6,8,10]">Upgrade (Cost: <span class="cost-display">2</span>)</button>
+                </div>
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Cartography (<span id="b-map-lvl">0</span>/3)</strong> - Starts with +1 Map Radius<br>
+                    <button class="btn-talent" data-id="b-map" data-max="3" data-cost="[5,10,15]">Upgrade (Cost: <span class="cost-display">5</span>)</button>
+                </div>
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Trap Mastery (<span id="b-trap-lvl">0</span>/1)</strong> - Unlocks Trap building<br>
+                    <button class="btn-talent" data-id="b-trap" data-max="1" data-cost="[5]">Unlock (Cost: <span class="cost-display">5</span>)</button>
+                </div>
+            </div>
+
+            <!-- Enemies Tab -->
+            <div id="tab-enemies" class="talent-tab" style="display: none;">
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Swarm Mutators (<span id="e-swarm-lvl">0</span>/3)</strong> - +10% Enemies, +10% Gold<br>
+                    <button class="btn-talent" data-id="e-swarm" data-max="3" data-cost="[2,4,6]">Upgrade (Cost: <span class="cost-display">2</span>)</button>
+                </div>
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Haste Mutators (<span id="e-spd-lvl">0</span>/3)</strong> - +10% Enemy Speed, +10% Gold<br>
+                    <button class="btn-talent" data-id="e-spd" data-max="3" data-cost="[2,4,6]">Upgrade (Cost: <span class="cost-display">2</span>)</button>
+                </div>
+                <div class="talent-item" style="margin-bottom: 15px;">
+                    <strong>Elite Mutators (<span id="e-elite-lvl">0</span>/1)</strong> - +20% HP, enemies can drop bonuses<br>
+                    <button class="btn-talent" data-id="e-elite" data-max="1" data-cost="[10]">Unlock (Cost: <span class="cost-display">10</span>)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
